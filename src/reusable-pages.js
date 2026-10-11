@@ -1,0 +1,964 @@
+import { PRODUCT_CATEGORIES } from "./product-data.js";
+
+const PRODUCTS_PER_PAGE = 10;
+
+function getMainElement() {
+  return document.querySelector("main[data-page-type]");
+}
+
+function getCategory(categoryKey) {
+  return PRODUCT_CATEGORIES[categoryKey] || null;
+}
+
+function getSubCategory(category, subKey) {
+  if (!category || !Array.isArray(category.sub)) return null;
+  return category.sub.find((item) => item.key === subKey) || null;
+}
+
+function getSubSubCategory(subCategory, subSubKey) {
+  if (!subCategory || !Array.isArray(subCategory.subSub)) return null;
+  return subCategory.subSub.find((item) => item.key === subSubKey) || null;
+}
+
+function safeArray(value) {
+  return Array.isArray(value) ? value : [];
+}
+
+function slugify(text = "") {
+  return String(text)
+    .toLowerCase()
+    .trim()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function imageTag(src, alt, extraClass = "") {
+  return `
+    <img
+      src="${src || "/images/products/placeholder.avif"}"
+      alt="${alt || "Product"}"
+      class="${extraClass}"
+      onerror="this.src='/images/products/placeholder.avif'"
+    />
+  `;
+}
+
+/* =========================
+   Banner + Breadcrumb
+========================= */
+function bannerHtml({
+  eyebrow,
+  title,
+  description,
+  banner,
+  mobileBanner,
+  videoId,
+  breadcrumb,
+}) {
+  const desktopBanner =
+    banner || "/images/products/banners/cctv-surveillance.avif";
+
+  const phoneBanner = mobileBanner || desktopBanner;
+
+  const videoButton = videoId
+    ? `
+      <button
+        type="button"
+        data-hero-video-open
+        data-youtube-video-id="${videoId}"
+        class="group absolute bottom-8 right-5 z-20 flex h-[58px] w-[58px] items-center justify-center border-0 bg-transparent p-0 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ff0033] md:bottom-auto md:right-[22%] md:top-1/2 md:-translate-y-1/2"
+        aria-label="Play video"
+      >
+        <svg
+          class="h-[40px] w-[54px] transition-transform duration-200 group-hover:scale-110"
+          viewBox="0 0 68 48"
+          fill="none"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <rect x="1.5" y="3" width="65" height="42" rx="13" fill="#FF0033" />
+          <path d="M27 14.5L46 24L27 33.5V14.5Z" fill="white" />
+        </svg>
+      </button>
+    `
+    : "";
+
+  const videoModal = videoId
+    ? `
+      <div
+        data-hero-video-modal
+        class="fixed inset-0 z-[9999] hidden items-center justify-center bg-[#071f4d]/80 p-4 backdrop-blur-[4px]"
+      >
+        <div
+          class="relative w-full max-w-[920px] overflow-hidden rounded-[18px] bg-black shadow-[0_30px_90px_rgba(0,0,0,0.35)]"
+        >
+          <button
+            type="button"
+            data-hero-video-close
+            class="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white text-[18px] font-normal text-[#071f4d] shadow-[0_8px_20px_rgba(0,0,0,0.20)] transition hover:bg-[#0068d9] hover:text-white"
+            aria-label="Close video"
+          >
+            ✕
+          </button>
+
+          <div class="aspect-video w-full">
+            <iframe
+              data-hero-video-frame
+              class="h-full w-full"
+              src=""
+              title="${title || "Product"} video"
+              allow="autoplay; encrypted-media; picture-in-picture"
+              allowfullscreen
+            ></iframe>
+          </div>
+        </div>
+      </div>
+    `
+    : "";
+
+  return `
+    <div class="relative overflow-hidden border-b border-[#dfeaf7] bg-[#eef6ff]">
+      <div class="absolute inset-0">
+        <picture class="block h-full w-full">
+          <source
+            media="(max-width: 767px)"
+            srcset="${phoneBanner}"
+          />
+
+          <img
+            src="${desktopBanner}"
+            alt="${title}"
+            class="h-full w-full object-cover object-center"
+          />
+        </picture>
+
+      </div>
+
+      ${videoButton}
+
+      <div class="relative z-10 max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="min-h-[300px] sm:min-h-[280px] flex items-center py-8 sm:py-0">
+          <div class="max-w-[660px]">
+            <p class="mb-3 text-[12px] sm:text-[13px] font-normal uppercase tracking-[0.16em] text-[#0057d8]">
+              ${eyebrow || "Products"}
+            </p>
+
+            <h1 class="text-[30px] sm:text-[40px] lg:text-[48px] leading-[1.08] font-medium text-[#071425]">
+              ${title}
+            </h1>
+
+            <p class="mt-4 max-w-[590px] text-[13px] sm:text-[15px] lg:text-[16px] leading-6 sm:leading-7 font-normal text-[#405068]">
+              ${description || ""}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="border-b border-[#e6edf5] bg-white">
+      <div class="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div class="flex flex-wrap items-center gap-2 text-[12px] sm:text-[13px] font-normal text-[#64748b]">
+          ${breadcrumb}
+        </div>
+      </div>
+    </div>
+
+    ${videoModal}
+  `;
+}
+
+/* =========================
+   Category Grid Card
+========================= */
+function categoryGridCard(item, isActive = false) {
+  const activeClass = isActive
+    ? "border-2 border-[#0057d8] bg-[#eef7ff]"
+    : "border border-[#dfeaf7] bg-white hover:border-[#0057d8]";
+
+  const titleClass = isActive
+    ? "text-[#0057d8]"
+    : "text-[#071425] group-hover:text-[#0057d8]";
+
+  return `
+    <a href="${item.link}"
+      class="group h-[170px] rounded-[6px] ${activeClass} overflow-hidden bg-white shadow-[0_5px_16px_rgba(15,23,42,0.04)] hover:shadow-[0_10px_25px_rgba(0,87,216,0.10)] transition-all duration-300 flex flex-col">
+
+      <div class="h-[122px] w-full overflow-hidden bg-white">
+        ${imageTag(
+          item.img || "/images/products/placeholder.avif",
+          item.name,
+          "w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105",
+        )}
+      </div>
+
+      <div class="h-[48px] px-2 flex items-center justify-center bg-white">
+        <h3 class="text-center text-[12px] sm:text-[13px] leading-[1.25] font-medium ${titleClass}">
+          ${item.name}
+        </h3>
+      </div>
+    </a>
+  `;
+}
+
+/* =========================
+   Slider Category Card
+========================= */
+function categoryCard(item, isActive = false) {
+  const activeClass = isActive
+    ? "border-2 border-[#0057d8] bg-[#eef7ff]"
+    : "border border-[#dfeaf7] bg-white hover:border-[#0057d8]";
+
+  const titleClass = isActive
+    ? "text-[#0057d8]"
+    : "text-[#071425] group-hover:text-[#0057d8]";
+
+  return `
+    <a href="${item.link}"
+      class="snap-start shrink-0 w-[180px] sm:w-[200px] md:w-[220px] lg:w-[240px] group h-[170px] rounded-[6px] ${activeClass} overflow-hidden bg-white shadow-[0_5px_16px_rgba(15,23,42,0.04)] hover:shadow-[0_10px_25px_rgba(0,87,216,0.10)] transition-all duration-300 flex flex-col">
+
+      <div class="h-[122px] w-full overflow-hidden bg-white">
+        ${imageTag(
+          item.img || "/images/products/placeholder.avif",
+          item.name,
+          "w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105",
+        )}
+      </div>
+
+      <div class="h-[48px] px-2 flex items-center justify-center bg-white">
+        <h3 class="text-center text-[12px] sm:text-[13px] leading-[1.25] font-medium ${titleClass}">
+          ${item.name}
+        </h3>
+      </div>
+    </a>
+  `;
+}
+
+/* =========================
+   Product Card
+========================= */
+
+function productCard(product) {
+  const phone = product.phone || "+8801847213869";
+  const whatsappNumber = String(phone).replace(/\D/g, "");
+  const whatsappText = encodeURIComponent(
+    `Hello, I want to know about ${product.name || "this product"}`,
+  );
+
+  const artNo = product.artNo || product.sku || "Call for Price";
+  const rating = Number(product.rating || 5);
+  const stars = "★★★★★".slice(0, Math.max(1, Math.min(rating, 5)));
+
+  const slug = product.slug || slugify(product.name || "product");
+  const detailsLink = `/product-details/${encodeURIComponent(slug)}`;
+
+  return `
+    <div
+      class="group relative flex h-[445px] flex-col rounded-[10px] border border-[#e3ecf7] bg-white shadow-[0_10px_28px_rgba(15,23,42,0.07)] transition-all duration-300 overflow-hidden hover:-translate-y-1 hover:border-[#0057d8] hover:shadow-[0_18px_45px_rgba(0,87,216,0.16)]">
+
+      <a href="${detailsLink}" class="h-[245px] shrink-0 flex items-center justify-center p-5 bg-white">
+        ${imageTag(
+          product.img || "/images/products/placeholder.avif",
+          product.name || "Product",
+          "max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-105",
+        )}
+      </a>
+
+      <div class="flex flex-1 flex-col justify-end px-3 sm:px-4 pb-4">
+        <a href="${detailsLink}">
+          <h3 class="min-h-[48px] text-[12px] sm:text-[13px] leading-[1.35] font-medium text-[#0057b8] transition-colors duration-300 group-hover:text-[#c2410c] hover:underline">
+            ${product.name || "Product Name"}
+          </h3>
+        </a>
+
+        <div class="mt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <p class="text-[11px] sm:text-[12px] font-normal text-[#c2410c]">
+            Art.Nr.: <span class="font-medium text-[#111827]">${artNo}</span>
+          </p>
+
+          <div class="text-[#ff4b00] text-[15px] sm:text-[17px] leading-none tracking-[-1px]">
+            ${stars}
+          </div>
+        </div>
+
+        <a href="${detailsLink}"
+          class="mt-3 inline-flex items-center justify-center rounded-full border border-[#dfeaf7] bg-[#f8fbff] px-4 py-2 text-[12px] font-medium text-[#0057b8] hover:bg-[#0057b8] hover:text-white transition">
+          View Details
+        </a>
+
+        <div
+          class="mt-3 flex items-center gap-2 text-[12px] sm:text-[13px] font-medium text-[#111827] transition-colors duration-300 group-hover:text-[#0057d8]">
+          
+          <a href="tel:${phone}" class="flex min-w-0 items-center gap-2 text-inherit">
+            <span class="w-4 h-4 rounded-[4px] bg-black text-white flex items-center justify-center shrink-0 transition-colors duration-300 group-hover:bg-[#0057d8]">
+              <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+                <path
+                  d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.8-.4 1.2-.3 1.3.4 2.6.6 4 .6.7 0 1.2.5 1.2 1.2v3.5c0 .7-.5 1.2-1.2 1.2C10.4 22 2 13.6 2 3.4 2 2.7 2.5 2.2 3.2 2.2h3.5c.7 0 1.2.5 1.2 1.2 0 1.4.2 2.7.6 4 .1.4 0 .9-.3 1.2l-1.6 2.2z">
+                </path>
+              </svg>
+            </span>
+
+            <span>${phone}</span>
+          </a>
+
+          <a href="https://wa.me/${whatsappNumber}?text=${whatsappText}"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="WhatsApp"
+            class="ml-auto shrink-0 text-[#25D366]">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.33 4.95L2 22l5.26-1.38a9.88 9.88 0 0 0 4.78 1.22h.01c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2Zm5.76 14.16c-.24.68-1.4 1.3-1.95 1.38-.5.08-1.12.11-1.81-.11-.42-.13-.96-.31-1.65-.61-2.9-1.25-4.79-4.16-4.94-4.35-.14-.19-1.18-1.57-1.18-3s.75-2.13 1.02-2.42c.27-.29.59-.36.78-.36h.56c.18.01.42-.07.65.5.24.58.82 2.01.89 2.16.07.15.12.33.02.52-.1.19-.15.31-.29.48-.15.17-.31.38-.44.51-.15.15-.3.31-.13.6.17.29.76 1.25 1.63 2.03 1.12 1 2.07 1.31 2.36 1.46.29.15.46.12.63-.07.17-.19.72-.84.91-1.13.19-.29.39-.24.65-.15.27.1 1.71.81 2 .96.29.15.48.22.55.34.07.12.07.7-.17 1.38Z"></path>
+    </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* =========================
+   Category Grid Section
+========================= */
+function categoryGridSection({ title, items, activeKey = "" }) {
+  const safeItems = safeArray(items);
+
+  return `
+    <div class="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="mb-5 border-b border-[#dfeaf7] pb-4">
+        <h2 class="text-[20px] sm:text-[22px] font-medium text-[#071425]">
+          ${title}
+        </h2>
+        <div class="mt-3 h-[2px] w-[42px] bg-[#0057d8]"></div>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-3">
+        ${safeItems
+          .map((item) => categoryGridCard(item, item.key === activeKey))
+          .join("")}
+      </div>
+    </div>
+  `;
+}
+
+/* =========================
+   Category Slider Section
+========================= */
+function categorySliderSection({
+  eyebrow,
+  title,
+  items,
+  activeKey = "",
+  allProductLink = "",
+  showAllProduct = true,
+}) {
+  const safeItems = safeArray(items);
+
+  return `
+    <div class="border-b border-[#e6edf5] bg-[#f8fbff]">
+      <div class="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <div class="mb-6 border-b border-[#dfeaf7] pb-4 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+          <div>
+            <p class="text-[13px] font-normal uppercase tracking-[0.18em] text-[#0057d8]">
+              ${eyebrow}
+            </p>
+
+            <h2 class="mt-2 text-[20px] sm:text-[22px] font-medium text-[#071425]">
+              ${title}
+            </h2>
+
+            <div class="mt-3 h-[2px] w-[42px] bg-[#0057d8]"></div>
+          </div>
+
+          <div class="flex items-center gap-3">
+            ${
+              showAllProduct && allProductLink
+                ? `
+                  <a href="${allProductLink}"
+                    class="inline-flex h-10 items-center justify-center rounded-[6px] border border-[#0057d8] bg-white px-4 text-[13px] font-medium text-[#0057d8] hover:bg-[#0057d8] hover:text-white transition-colors">
+                    All Product
+                  </a>
+                `
+                : ""
+            }
+
+            <button type="button" data-product-prev
+              class="hidden sm:inline-flex h-10 w-10 items-center justify-center rounded-[6px] border border-[#dfeaf7] bg-white text-[22px] font-normal text-[#071425] hover:border-[#0057d8] hover:text-[#0057d8] transition-colors">
+              ‹
+            </button>
+
+            <button type="button" data-product-next
+              class="hidden sm:inline-flex h-10 w-10 items-center justify-center rounded-[6px] border border-[#dfeaf7] bg-white text-[22px] font-normal text-[#071425] hover:border-[#0057d8] hover:text-[#0057d8] transition-colors">
+              ›
+            </button>
+          </div>
+        </div>
+
+        <div data-product-slider class="relative">
+          <div data-product-track
+            class="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-3 [scrollbar-width:none] [-ms-overflow-style:none]">
+
+            ${safeItems
+              .map((item) => categoryCard(item, item.key === activeKey))
+              .join("")}
+
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* =========================
+   Products Section with Pagination
+========================= */
+function productsSection(title, products) {
+  const safeProducts = safeArray(products);
+
+  return `
+<div class="bg-white border-t border-[#e6edf5]" data-paginated-products data-products-per-page="${PRODUCTS_PER_PAGE}">
+ <div class="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 pt-7 pb-10">
+
+  <div class="mb-8">
+    <div class="text-center">
+      <p class="text-[13px] font-medium uppercase tracking-[0.22em] text-[#0057d8]">
+        All Products
+      </p>
+
+      <h2 class="mt-3 text-[28px] sm:text-[34px] font-medium text-[#071425]">
+        ${title}
+      </h2>
+
+      <div class="mx-auto mt-3 h-[2px] w-[42px] bg-[#0057d8]"></div>
+    </div>
+
+    <div class="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div class="flex justify-start">
+        <button
+          type="button"
+          data-product-filter-open
+          class="inline-flex h-11 items-center justify-center gap-2 rounded-[6px] bg-[#0057d8] px-5 text-[14px] font-medium text-white transition hover:bg-[#0049b8]"
+        >
+          <span>Filters</span>
+          <span class="text-[18px] leading-none">☰</span>
+        </button>
+      </div>
+
+      ${
+        safeProducts.length
+          ? `
+            <p class="text-left text-[13px] font-medium text-[#607086] sm:text-right sm:text-[14px]">
+              Showing
+              <span data-page-start class="text-[#0057d8]">1</span>
+              -
+              <span data-page-end class="text-[#0057d8]">${Math.min(PRODUCTS_PER_PAGE, safeProducts.length)}</span>
+              of
+              <span class="text-[#0057d8]">${safeProducts.length}</span>
+              products
+            </p>
+          `
+          : ""
+      }
+    </div>
+  </div>
+
+    <div
+    data-product-filter-overlay
+    class="fixed inset-0 z-[99999] hidden bg-black/45"
+    >
+  <aside
+    data-product-filter-panel
+    class="h-full w-[300px] max-w-[86vw] bg-white shadow-[20px_0_60px_rgba(15,23,42,0.25)]"
+  >
+   <div class="flex h-[58px] items-center justify-between bg-[#0057d8] px-4 text-white">
+      <p class="text-[18px] font-medium">Filters</p>
+
+      <button
+        type="button"
+        data-product-filter-close
+        class="grid h-9 w-9 place-items-center text-[30px] leading-none"
+        aria-label="Close filters"
+      >
+        ×
+      </button>
+    </div>
+
+    <div class="border-b border-[#e5e7eb] bg-[#f7f7f7] px-4 py-3">
+      <p class="text-[15px] font-medium text-[#444]">Product Type</p>
+    </div>
+
+    <div class="space-y-4 px-4 py-5">
+      <label class="flex items-center gap-3 text-[14px] text-[#111827]">
+        <input type="checkbox" checked />
+        <span>CCTV Camera</span>
+      </label>
+
+      <label class="flex items-center gap-3 text-[14px] text-[#111827]">
+        <input type="checkbox" />
+        <span>IP Camera</span>
+      </label>
+
+      <label class="flex items-center gap-3 text-[14px] text-[#111827]">
+        <input type="checkbox" />
+        <span>DVR / NVR</span>
+      </label>
+
+      <label class="flex items-center gap-3 text-[14px] text-[#111827]">
+        <input type="checkbox" />
+        <span>Accessories</span>
+      </label>
+    </div>
+  </aside>
+</div>
+
+        ${
+          safeProducts.length
+            ? `
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+                ${safeProducts
+                  .map(
+                    (product) => `
+                      <div data-product-item>
+                        ${productCard(product)}
+                      </div>
+                    `,
+                  )
+                  .join("")}
+              </div>
+
+              <div data-product-pagination class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
+                <button type="button" data-page-action="prev"
+                  class="inline-flex h-10 items-center justify-center rounded-[6px] border border-[#dfeaf7] bg-white px-4 text-[13px] font-medium text-[#071425] hover:border-[#0057d8] hover:text-[#0057d8] disabled:cursor-not-allowed disabled:opacity-40 transition-colors">
+                  Previous
+                </button>
+
+                <div data-page-numbers class="flex flex-wrap items-center justify-center gap-2"></div>
+
+                <button type="button" data-page-action="next"
+                  class="inline-flex h-10 items-center justify-center rounded-[6px] border border-[#dfeaf7] bg-white px-4 text-[13px] font-medium text-[#071425] hover:border-[#0057d8] hover:text-[#0057d8] disabled:cursor-not-allowed disabled:opacity-40 transition-colors">
+                  Next
+                </button>
+              </div>
+            `
+            : `
+              <p class="text-[16px] font-normal text-[#607086]">
+                Products will be updated soon.
+              </p>
+            `
+        }
+      </div>
+    </div>
+  `;
+}
+
+/* =========================
+   Init Product Pagination
+========================= */
+function initProductPagination() {
+  document.querySelectorAll("[data-paginated-products]").forEach((section) => {
+    const items = Array.from(section.querySelectorAll("[data-product-item]"));
+    const pageSize =
+      Number(section.getAttribute("data-products-per-page")) ||
+      PRODUCTS_PER_PAGE;
+
+    const pagination = section.querySelector("[data-product-pagination]");
+    const pageNumbers = section.querySelector("[data-page-numbers]");
+    const prevBtn = section.querySelector('[data-page-action="prev"]');
+    const nextBtn = section.querySelector('[data-page-action="next"]');
+    const pageStart = section.querySelector("[data-page-start]");
+    const pageEnd = section.querySelector("[data-page-end]");
+
+    if (!items.length || !pagination || !pageNumbers || !prevBtn || !nextBtn) {
+      return;
+    }
+
+    const totalPages = Math.ceil(items.length / pageSize);
+    let currentPage = 1;
+
+    if (totalPages <= 1) {
+      pagination.style.display = "none";
+    }
+
+    function renderPage(page) {
+      currentPage = Math.max(1, Math.min(page, totalPages));
+
+      const startIndex = (currentPage - 1) * pageSize;
+      const endIndex = Math.min(startIndex + pageSize, items.length);
+
+      items.forEach((item, index) => {
+        item.style.display =
+          index >= startIndex && index < endIndex ? "" : "none";
+      });
+
+      if (pageStart) pageStart.textContent = startIndex + 1;
+      if (pageEnd) pageEnd.textContent = endIndex;
+
+      prevBtn.disabled = currentPage === 1;
+      nextBtn.disabled = currentPage === totalPages;
+
+      pageNumbers.innerHTML = Array.from({ length: totalPages })
+        .map((_, index) => {
+          const pageNumber = index + 1;
+          const isActive = pageNumber === currentPage;
+
+          return `
+            <button type="button" data-page-number="${pageNumber}"
+              class="h-10 min-w-10 rounded-[6px] border px-3 text-[13px] font-medium transition-colors ${
+                isActive
+                  ? "border-[#0057d8] bg-[#0057d8] text-white"
+                  : "border-[#dfeaf7] bg-white text-[#071425] hover:border-[#0057d8] hover:text-[#0057d8]"
+              }">
+              ${pageNumber}
+            </button>
+          `;
+        })
+        .join("");
+    }
+
+    pagination.addEventListener("click", (event) => {
+      const button = event.target.closest("button");
+      if (!button) return;
+
+      const action = button.getAttribute("data-page-action");
+      const pageNumber = button.getAttribute("data-page-number");
+
+      if (action === "prev") {
+        renderPage(currentPage - 1);
+      }
+
+      if (action === "next") {
+        renderPage(currentPage + 1);
+      }
+
+      if (pageNumber) {
+        renderPage(Number(pageNumber));
+      }
+
+      section.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+
+    renderPage(1);
+  });
+}
+
+function initProductFilterDrawer() {
+  document
+    .querySelectorAll("[data-paginated-products]")
+    .forEach(function (section) {
+      const openButton = section.querySelector("[data-product-filter-open]");
+      const overlay = section.querySelector("[data-product-filter-overlay]");
+      const closeButton = section.querySelector("[data-product-filter-close]");
+
+      if (!openButton || !overlay || !closeButton) return;
+
+      if (section.dataset.filterDrawerReady === "true") return;
+      section.dataset.filterDrawerReady = "true";
+
+      function openFilter() {
+        overlay.classList.remove("hidden");
+        document.documentElement.style.overflow = "hidden";
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeFilter() {
+        overlay.classList.add("hidden");
+        document.documentElement.style.overflow = "";
+        document.body.style.overflow = "";
+      }
+
+      openButton.addEventListener("click", openFilter);
+      closeButton.addEventListener("click", closeFilter);
+
+      overlay.addEventListener("click", function (event) {
+        if (event.target === overlay) {
+          closeFilter();
+        }
+      });
+
+      window.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+          closeFilter();
+        }
+      });
+    });
+}
+
+/* =========================
+   SEO + FAQ
+   Main Category + Sub Category + Sub Sub Category
+========================= */
+function seoAndFaqHtml(item) {
+  if (!item) return "";
+
+  const title = item.title || item.name || "Products";
+
+  const seoTextFromData = safeArray(item.seoText);
+  const faqFromData = safeArray(item.faq);
+
+  const seoText = seoTextFromData.length
+    ? seoTextFromData
+    : [
+        item.description ||
+          `${title} solutions for professional security, automation and technology projects.`,
+        `GCTL provides ${title} products for homes, offices, factories, warehouses, apartments, schools, hospitals, banks and commercial buildings.`,
+        `${title} products are suitable for reliable performance, professional installation and long-term project support.`,
+      ];
+
+  const faq = faqFromData.length
+    ? faqFromData
+    : [
+        {
+          question: `What is ${title}?`,
+          answer:
+            item.description ||
+            `${title} is a professional product category used for security, automation and technology projects.`,
+        },
+        {
+          question: `Where can ${title} be used?`,
+          answer: `${title} can be used in homes, offices, factories, warehouses, apartments, schools, hospitals, banks, shopping malls and commercial buildings.`,
+        },
+        {
+          question: `Do you provide installation support for ${title}?`,
+          answer: `Yes, GCTL provides product supply, installation, configuration and project support for ${title}.`,
+        },
+      ];
+
+  return `
+    <!-- SEO Text -->
+   <!-- SEO Text -->
+  <div class="bg-[#f7fbff] py-12 lg:py-16 border-t border-[#e4eef8]">
+    <div class="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div>
+        <h2 class="text-[24px] sm:text-[32px] leading-tight font-medium text-[#071b45] tracking-[-0.02em]">
+          ${item.seoTitle || `${title} in Bangladesh`}
+        </h2>
+
+        <div class="mt-5 space-y-5 text-[14px] sm:text-[15px] leading-7 font-normal text-[#40516b]">
+          ${seoText.map((text) => `<p>${text}</p>`).join("")}
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <!-- FAQ -->
+    <div class="bg-white py-12 lg:py-16 pb-24 lg:pb-16">
+      <div class="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-8">
+          <h2 class="text-[28px] sm:text-[34px] leading-tight font-medium text-[#071b45] tracking-[-0.02em]">
+            Frequently Asked Questions
+          </h2>
+          <div class="w-[52px] h-[3px] bg-[#0057d8] mx-auto mt-4 rounded-full"></div>
+        </div>
+
+        <div class="space-y-4">
+          ${faq
+            .map(
+              (faqItem) => `
+                <details class="group rounded-[16px] border border-[#dfeaf7] bg-white p-5 open:shadow-[0_12px_35px_rgba(15,23,42,0.08)]">
+                  <summary class="cursor-pointer list-none flex items-center justify-between gap-5">
+                    <span class="text-[16px] sm:text-[17px] font-medium text-[#071b45]">
+                      ${faqItem.question}
+                    </span>
+
+                     <span class="inline-flex h-8 w-8 shrink-0 items-center justify-center text-[24px] font-normal leading-none text-[#071b45] group-open:rotate-45 transition-transform">
+                      +
+                    </span>
+                  </summary>
+
+                  <p class="mt-4 text-[14px] leading-7 font-normal text-[#40516b]">
+                    ${faqItem.answer}
+                  </p>
+                </details>
+              `,
+            )
+            .join("")}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* =========================
+   Render Main Category Page
+========================= */
+function renderCategoryPage(category) {
+  const root = document.getElementById("reusableCategoryPage");
+  if (!root) return;
+
+  const subCategories = safeArray(category.sub);
+  const products = subCategories.flatMap((sub) => safeArray(sub.products));
+
+  root.innerHTML = `
+${bannerHtml({
+  eyebrow: category.eyebrow || "Products",
+  title: category.title,
+  description: category.description,
+  banner: category.banner,
+  mobileBanner: category.mobileBanner,
+  videoId: category.videoId,
+  breadcrumb: `
+    <a href="/index.html" class="hover:text-[#0057d8]">Home</a>
+    <span>/</span>
+    <span class="text-[#0057d8]">${category.title}</span>
+  `,
+})}
+
+    ${categoryGridSection({
+      title: "Browse by Category",
+      items: subCategories,
+    })}
+
+    ${productsSection(`${category.title} Products`, products)}
+
+    ${seoAndFaqHtml(category)}
+  `;
+
+  initProductPagination();
+  initProductFilterDrawer();
+}
+
+/* =========================
+   Render Sub Category Page
+========================= */
+function renderSubCategoryPage(category, subCategory) {
+  const root = document.getElementById("reusableSubCategoryPage");
+  if (!root) return;
+
+  const subSubItems = safeArray(subCategory.subSub);
+  const products = safeArray(subCategory.products);
+
+  root.innerHTML = `
+  ${bannerHtml({
+    eyebrow: category.title,
+    title: subCategory.name,
+    description: subCategory.description,
+    banner: subCategory.banner || category.banner,
+    mobileBanner: subCategory.mobileBanner || category.mobileBanner,
+    videoId: subCategory.videoId || category.videoId,
+    breadcrumb: `
+        <a href="/index.html" class="hover:text-[#0057d8]">Home</a>
+        <span>/</span>
+        <a href="${category.link}" class="hover:text-[#0057d8]">${category.title}</a>
+        <span>/</span>
+        <span class="text-[#0057d8]">${subCategory.name}</span>
+      `,
+  })}
+
+    ${
+      subSubItems.length
+        ? categoryGridSection({
+            title: "Browse by Category",
+            items: subSubItems,
+          })
+        : ""
+    }
+
+    ${productsSection(`${subCategory.name} Products`, products)}
+
+    ${seoAndFaqHtml(subCategory)}
+  `;
+
+  initProductPagination();
+  initProductFilterDrawer();
+}
+
+/* =========================
+   Render Sub Sub Category Page
+========================= */
+function renderSubSubCategoryPage(category, subCategory, subSubCategory) {
+  const root = document.getElementById("reusableSubSubCategoryPage");
+  if (!root) return;
+
+  const subSubItems = safeArray(subCategory.subSub);
+  const products = safeArray(subSubCategory.products);
+
+  root.innerHTML = `
+  ${bannerHtml({
+    eyebrow: subCategory.name,
+    title: subSubCategory.name,
+    description: subSubCategory.description,
+    banner: subSubCategory.banner || subCategory.banner || category.banner,
+    mobileBanner:
+      subSubCategory.mobileBanner ||
+      subCategory.mobileBanner ||
+      category.mobileBanner,
+    videoId: subSubCategory.videoId || subCategory.videoId || category.videoId,
+    breadcrumb: `
+        <a href="/index.html" class="hover:text-[#0057d8]">Home</a>
+        <span>/</span>
+        <a href="${category.link}" class="hover:text-[#0057d8]">${category.title}</a>
+        <span>/</span>
+        <a href="${subCategory.link}" class="hover:text-[#0057d8]">${subCategory.name}</a>
+        <span>/</span>
+        <span class="text-[#0057d8]">${subSubCategory.name}</span>
+      `,
+  })}
+
+    ${categorySliderSection({
+      eyebrow: `${subCategory.name} Types`,
+      title: `Browse ${subCategory.name} Categories`,
+      items: subSubItems,
+      activeKey: subSubCategory.key,
+      allProductLink: subCategory.link,
+      showAllProduct: true,
+    })}
+
+    ${productsSection(`${subSubCategory.name} Products`, products)}
+
+    ${seoAndFaqHtml(subSubCategory)}
+  `;
+
+  initProductPagination();
+  initProductFilterDrawer();
+}
+
+/* =========================
+   Init Reusable Pages
+========================= */
+export function initReusablePages() {
+  const main = getMainElement();
+  if (!main) return;
+
+  const pageType = main.getAttribute("data-page-type");
+  const categoryKey = main.getAttribute("data-category-key");
+  const subKey = main.getAttribute("data-sub-key");
+  const subSubKey = main.getAttribute("data-sub-sub-key");
+
+  const category = getCategory(categoryKey);
+
+  if (!category) {
+    console.warn("Reusable page category not found:", categoryKey);
+    return;
+  }
+
+  if (pageType === "category") {
+    renderCategoryPage(category);
+    return;
+  }
+
+  const subCategory = getSubCategory(category, subKey);
+
+  if (!subCategory) {
+    console.warn("Reusable page sub category not found:", subKey);
+    return;
+  }
+
+  if (pageType === "sub-category") {
+    renderSubCategoryPage(category, subCategory);
+    return;
+  }
+
+  const subSubCategory = getSubSubCategory(subCategory, subSubKey);
+
+  if (!subSubCategory) {
+    console.warn("Reusable page sub sub category not found:", subSubKey);
+    return;
+  }
+
+  if (pageType === "sub-sub-category") {
+    renderSubSubCategoryPage(category, subCategory, subSubCategory);
+  }
+}

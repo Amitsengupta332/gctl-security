@@ -1,0 +1,617 @@
+<!-- =========================================================
+     NAVBAR
+========================================================= -->
+<header
+  id="siteHeader"
+  class="fixed left-0 top-0 z-50 w-full border-b border-gray-100 bg-white shadow-[0_8px_30px_rgba(15,23,42,0.06)] transition-all duration-300"
+>
+  <nav class="relative bg-white">
+    <div class="mx-auto max-w-[1320px] px-4">
+      <div class="flex h-[92px] items-center justify-between gap-6">
+        <!-- =====================================================
+             LOGO
+        ====================================================== -->
+        <a href="/index.html" class="flex w-[190px] shrink-0 items-center">
+          <img
+            src="/images/gctl-logo-white-bg-same-layout.avif"
+            alt="GCTL Security & Automation"
+            width="190"
+            height="56"
+            loading="eager"
+            decoding="async"
+            class="max-h-[64px] w-full object-contain object-left"
+          />
+        </a>
+
+        <!-- =====================================================
+             ONE NAVIGATION
+             SAME DOM FOR DESKTOP + MOBILE
+        ====================================================== -->
+        <ul
+          id="mainNav"
+          class="absolute left-4 right-4 top-full z-[80] hidden max-h-[calc(100vh-110px)] overflow-y-auto rounded-b-2xl border border-gray-100 bg-white p-3 text-[14px] font-normal text-[#071425] shadow-[0_14px_35px_rgba(15,23,42,0.14)] lg:static lg:z-auto lg:flex lg:max-h-none lg:items-center lg:justify-center lg:gap-8 lg:overflow-visible lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none max-lg:[&>li]:h-auto max-lg:[&>li]:w-full max-lg:[&>li]:border-b max-lg:[&>li]:border-gray-100 max-lg:[&>li>a]:w-full max-lg:[&>li>a]:rounded-lg max-lg:[&>li>a]:px-3 max-lg:[&>li>a]:py-3 max-lg:[&>li>a]:hover:bg-gray-50"
+        >
+          <!-- =================================================
+               HOME
+          ================================================== -->
+          <li class="flex items-center lg:h-[92px]">
+            <a
+              href="/index.html"
+              class="transition-colors hover:text-[#0068c9]"
+            >
+              Home
+            </a>
+          </li>
+
+          <!-- =================================================
+               ABOUT
+          ================================================== -->
+          <li class="flex items-center lg:h-[92px]">
+            <a
+              href="/about.html"
+              class="transition-colors hover:text-[#0068c9]"
+            >
+              About Us
+            </a>
+          </li>
+
+          <!-- =================================================
+               PRODUCTS
+          ================================================== -->
+          <li
+            class="group/products relative flex items-center max-lg:flex-col max-lg:items-stretch lg:h-[92px]"
+          >
+            <!-- Product Top Link / Mobile Toggle -->
+            <a
+              href="/all-categories.html"
+              data-products-toggle
+              aria-expanded="false"
+              class="flex items-center justify-between gap-1 transition-colors hover:text-[#0068c9] lg:justify-start"
+            >
+              <span>Products</span>
+
+              <svg
+                data-products-icon
+                class="mt-[2px] h-3.5 w-3.5 transition-transform duration-200"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <path d="m6 9 6 6 6-6"></path>
+              </svg>
+            </a>
+
+            <!-- =================================================
+                 ONE PRODUCTS MEGA MENU
+                 Desktop = 3 Columns
+                 Mobile = stacked
+            ================================================== -->
+            <div
+              data-products-panel
+              class="hidden w-full pt-1 lg:fixed lg:left-0 lg:right-0 lg:top-[92px] lg:z-[999] lg:mx-auto lg:block lg:w-[calc(100vw-40px)] lg:max-w-[1220px] lg:pt-0 lg:opacity-0 lg:invisible lg:transition-all lg:duration-200 lg:group-hover/products:visible lg:group-hover/products:opacity-100 lg:group-focus-within/products:visible lg:group-focus-within/products:opacity-100"
+            >
+              <div
+                class="grid grid-cols-1 overflow-visible rounded-[14px] border border-[#dce8f7] bg-white shadow-[0_22px_60px_rgba(15,23,42,0.16)] lg:h-[640px] lg:max-h-[calc(100vh-110px)] lg:grid-cols-[360px_360px_1fr] lg:overflow-hidden lg:rounded-b-[18px] lg:rounded-t-none"
+              >
+                <!-- =============================================
+                     LEFT CATEGORIES
+                ============================================== -->
+                <div
+                  class="flex flex-col overflow-visible border-b border-[#dce8f7] bg-white lg:h-full lg:overflow-hidden lg:border-b-0 lg:border-r"
+                >
+                  <!-- All Categories -->
+                  <a
+                    href="/all-categories.html"
+                    class="flex h-[56px] w-full shrink-0 items-center gap-4 bg-white px-6 text-left text-[#071425] transition-colors hover:bg-gray-50"
+                  >
+                    <span class="grid grid-cols-2 gap-1">
+                      <span
+                        class="h-2.5 w-2.5 rounded-[2px] bg-[#0068c9]"
+                      ></span>
+                      <span
+                        class="h-2.5 w-2.5 rounded-[2px] bg-[#0068c9]"
+                      ></span>
+                      <span
+                        class="h-2.5 w-2.5 rounded-[2px] bg-[#0068c9]"
+                      ></span>
+                      <span
+                        class="h-2.5 w-2.5 rounded-[2px] bg-[#0068c9]"
+                      ></span>
+                    </span>
+
+                    <span class="text-[15px] font-normal text-[#071425]">
+                      All Product Categories
+                    </span>
+                  </a>
+
+                  <!-- Category Scroll Area -->
+                  <div
+                    data-product-scrollbar
+                    class="min-h-0 flex-1 overflow-visible lg:overflow-y-auto lg:overscroll-contain"
+                  >
+                    <!-- CCTV -->
+                    <button
+                      type="button"
+                      data-product-mega-tab="cctv"
+                      data-product-link="/cctv-surveillance.html"
+                      class="product-mega-tab flex h-[46px] w-full items-center justify-between border-b border-l-2 border-b-[#edf2f8] border-l-[#0057d8] bg-[#eef7ff] px-5 text-left text-[14px] font-normal text-[#0057d8]"
+                    >
+                      <span class="flex items-center gap-3">
+                        <span
+                          class="flex h-7 w-7 items-center justify-center rounded-md bg-blue-100 text-[#0057d8]"
+                        >
+                          📹
+                        </span>
+
+                        CCTV Surveillance
+                      </span>
+
+                      <span class="text-xl">›</span>
+                    </button>
+
+                    <!-- Automation -->
+                    <button
+                      type="button"
+                      data-product-mega-tab="automation"
+                      class="product-mega-tab flex h-[46px] w-full items-center justify-between border-b border-[#edf2f8] px-5 text-left text-[14px] font-normal text-[#071425] transition-colors hover:bg-[#eef7ff] hover:text-[#0057d8]"
+                    >
+                      <span class="flex items-center gap-3">
+                        <span
+                          class="flex h-7 w-7 items-center justify-center rounded-md bg-gray-100 text-gray-500"
+                        >
+                          ⚙
+                        </span>
+
+                        Automation Products
+                      </span>
+
+                      <span class="text-xl">›</span>
+                    </button>
+
+                    <!-- Entrance -->
+                    <button
+                      type="button"
+                      data-product-mega-tab="entrance"
+                      class="product-mega-tab flex h-[46px] w-full items-center justify-between border-b border-[#edf2f8] px-5 text-left text-[14px] font-normal text-[#071425] transition-colors hover:bg-[#eef7ff] hover:text-[#0057d8]"
+                    >
+                      <span class="flex items-center gap-3">
+                        <span
+                          class="flex h-7 w-7 items-center justify-center rounded-md bg-gray-100 text-gray-500"
+                        >
+                          🚪
+                        </span>
+
+                        Entrance Security Solutions
+                      </span>
+
+                      <span class="text-xl">›</span>
+                    </button>
+
+                    <!-- Analytics -->
+                    <button
+                      type="button"
+                      data-product-mega-tab="analytics"
+                      class="product-mega-tab flex h-[46px] w-full items-center justify-between border-b border-[#edf2f8] px-5 text-left text-[14px] font-normal text-[#071425] transition-colors hover:bg-[#eef7ff] hover:text-[#0057d8]"
+                    >
+                      <span class="flex items-center gap-3">
+                        <span
+                          class="flex h-7 w-7 items-center justify-center rounded-md bg-gray-100 text-gray-500"
+                        >
+                          ▣
+                        </span>
+
+                        Intelligent Video Analytics
+                      </span>
+
+                      <span class="text-xl">›</span>
+                    </button>
+
+                    <!-- Access Control -->
+                    <button
+                      type="button"
+                      data-product-mega-tab="access"
+                      class="product-mega-tab flex h-[46px] w-full items-center justify-between border-b border-[#edf2f8] px-5 text-left text-[14px] font-normal text-[#071425] transition-colors hover:bg-[#eef7ff] hover:text-[#0057d8]"
+                    >
+                      <span class="flex items-center gap-3">
+                        <span
+                          class="flex h-7 w-7 items-center justify-center rounded-md bg-gray-100 text-gray-500"
+                        >
+                          ▣
+                        </span>
+
+                        Access Control & Time Attendance
+                      </span>
+
+                      <span class="text-xl">›</span>
+                    </button>
+
+                    <!-- Fire -->
+                    <button
+                      type="button"
+                      data-product-mega-tab="fire"
+                      class="product-mega-tab flex h-[46px] w-full items-center justify-between border-b border-[#edf2f8] px-5 text-left text-[14px] font-normal text-[#071425] transition-colors hover:bg-[#eef7ff] hover:text-[#0057d8]"
+                    >
+                      <span class="flex items-center gap-3">
+                        <span
+                          class="flex h-7 w-7 items-center justify-center rounded-md bg-gray-100 text-gray-500"
+                        >
+                          🔥
+                        </span>
+
+                        Fire Alarm System
+                      </span>
+
+                      <span class="text-xl">›</span>
+                    </button>
+
+                    <!-- Barrier -->
+                    <button
+                      type="button"
+                      data-product-mega-tab="barrier"
+                      class="product-mega-tab flex h-[46px] w-full items-center justify-between border-b border-[#edf2f8] px-5 text-left text-[14px] font-normal text-[#071425] transition-colors hover:bg-[#eef7ff] hover:text-[#0057d8]"
+                    >
+                      <span class="flex items-center gap-3">
+                        <span
+                          class="flex h-7 w-7 items-center justify-center rounded-md bg-gray-100 text-gray-500"
+                        >
+                          🚧
+                        </span>
+
+                        Turnstile Gate & Boom Barrier
+                      </span>
+
+                      <span class="text-xl">›</span>
+                    </button>
+
+                    <!-- Signage -->
+                    <button
+                      type="button"
+                      data-product-mega-tab="signage"
+                      class="product-mega-tab flex h-[46px] w-full items-center justify-between border-b border-[#edf2f8] px-5 text-left text-[14px] font-normal text-[#071425] transition-colors hover:bg-[#eef7ff] hover:text-[#0057d8]"
+                    >
+                      <span class="flex items-center gap-3">
+                        <span
+                          class="flex h-7 w-7 items-center justify-center rounded-md bg-gray-100 text-gray-500"
+                        >
+                          ▤
+                        </span>
+
+                        LCD/LED Digital Signage
+                      </span>
+
+                      <span class="text-xl">›</span>
+                    </button>
+
+                    <!-- Queue -->
+                    <button
+                      type="button"
+                      data-product-mega-tab="queue"
+                      class="product-mega-tab flex h-[46px] w-full items-center justify-between border-b border-[#edf2f8] px-5 text-left text-[14px] font-normal text-[#071425] transition-colors hover:bg-[#eef7ff] hover:text-[#0057d8]"
+                    >
+                      <span class="flex items-center gap-3">
+                        <span
+                          class="flex h-7 w-7 items-center justify-center rounded-md bg-gray-100 text-gray-500"
+                        >
+                          👥
+                        </span>
+
+                        Queue Management System
+                      </span>
+
+                      <span class="text-xl">›</span>
+                    </button>
+
+                    <!-- Vehicle -->
+                    <button
+                      type="button"
+                      data-product-mega-tab="vehicle"
+                      class="product-mega-tab flex h-[46px] w-full items-center justify-between border-b border-[#edf2f8] px-5 text-left text-[14px] font-normal text-[#071425] transition-colors hover:bg-[#eef7ff] hover:text-[#0057d8]"
+                    >
+                      <span class="flex items-center gap-3">
+                        <span
+                          class="flex h-7 w-7 items-center justify-center rounded-md bg-gray-100 text-gray-500"
+                        >
+                          🚗
+                        </span>
+
+                        Vehicle Control System
+                      </span>
+
+                      <span class="text-xl">›</span>
+                    </button>
+
+                    <!-- Conference -->
+                    <button
+                      type="button"
+                      data-product-mega-tab="conference"
+                      class="product-mega-tab flex h-[46px] w-full items-center justify-between border-b border-[#edf2f8] px-5 text-left text-[14px] font-normal text-[#071425] transition-colors hover:bg-[#eef7ff] hover:text-[#0057d8]"
+                    >
+                      <span class="flex items-center gap-3">
+                        <span
+                          class="flex h-7 w-7 items-center justify-center rounded-md bg-gray-100 text-gray-500"
+                        >
+                          🎙
+                        </span>
+
+                        Conference & PA System
+                      </span>
+
+                      <span class="text-xl">›</span>
+                    </button>
+
+                    <!-- Building -->
+                    <button
+                      type="button"
+                      data-product-mega-tab="building"
+                      class="product-mega-tab flex h-[46px] w-full items-center justify-between border-b border-[#edf2f8] px-5 text-left text-[14px] font-normal text-[#071425] transition-colors hover:bg-[#eef7ff] hover:text-[#0057d8]"
+                    >
+                      <span class="flex items-center gap-3">
+                        <span
+                          class="flex h-7 w-7 items-center justify-center rounded-md bg-gray-100 text-gray-500"
+                        >
+                          🏢
+                        </span>
+
+                        Building Automation Solutions
+                      </span>
+
+                      <span class="text-xl">›</span>
+                    </button>
+
+                    <!-- Smart Home -->
+                    <button
+                      type="button"
+                      data-product-mega-tab="smart"
+                      class="product-mega-tab flex h-[46px] w-full items-center justify-between px-5 text-left text-[14px] font-normal text-[#071425] transition-colors hover:bg-[#eef7ff] hover:text-[#0057d8]"
+                    >
+                      <span class="flex items-center gap-3">
+                        <span
+                          class="flex h-7 w-7 items-center justify-center rounded-md bg-gray-100 text-gray-500"
+                        >
+                          ⌂
+                        </span>
+
+                        Smart Home Solutions
+                      </span>
+
+                      <span class="text-xl">›</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- =============================================
+                     MIDDLE SUB CATEGORIES
+                ============================================== -->
+                <div
+                  class="flex flex-col overflow-visible border-b border-[#dce8f7] bg-white px-5 py-5 sm:px-7 sm:py-7 lg:h-full lg:overflow-hidden lg:border-b-0 lg:border-r"
+                >
+                  +
+                  <h3
+                    id="productMegaTitle"
+                    class="mb-5 shrink-0 text-[17px] font-normal text-[#0057d8]"
+                  >
+                    CCTV Surveillance
+                  </h3>
+
+                  <div
+                    id="productMegaSubList"
+                    data-product-scrollbar
+                    class="min-h-0 flex-1 space-y-1 overflow-visible pr-2 lg:overflow-y-auto lg:overscroll-contain"
+                  ></div>
+                </div>
+
+                <!-- =============================================
+                     RIGHT PRODUCT PREVIEW
+                ============================================== -->
+                <div
+                  class="flex flex-col overflow-visible bg-white px-5 py-5 sm:px-7 sm:py-7 lg:h-full lg:overflow-hidden"
+                >
+                  <h3
+                    id="productMegaPreviewTitle"
+                    class="mb-6 shrink-0 text-[17px] font-normal text-[#0057d8]"
+                  >
+                    HD CCTV Camera
+                  </h3>
+
+                  <div
+                    id="productMegaPreviewList"
+                    data-product-scrollbar
+                    class="min-h-0 flex-1 space-y-4 overflow-visible pr-2 lg:overflow-y-auto lg:overscroll-contain"
+                  ></div>
+
+                  <a
+                    id="productMegaViewAll"
+                    href="/cctv-surveillance.html"
+                    class="mt-7 flex h-[48px] shrink-0 items-center justify-between rounded-lg bg-[#eef7ff] px-5 text-[15px] font-normal text-[#0057d8] transition-colors hover:bg-[#dcefff]"
+                  >
+                    <span>View All Products</span>
+                    <span class="text-2xl leading-none">›</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </li>
+
+          <!-- =================================================
+               INDUSTRIES
+          ================================================== -->
+          <li class="flex items-center lg:h-[92px]">
+            <a
+              href="/industries.html"
+              class="transition-colors hover:text-[#0068c9]"
+            >
+              Industries
+            </a>
+          </li>
+
+          <!-- =================================================
+               SERVICES
+          ================================================== -->
+          <li class="flex items-center lg:h-[92px]">
+            <a
+              href="/services.html"
+              class="transition-colors hover:text-[#0068c9]"
+            >
+              Services
+            </a>
+          </li>
+
+          <!-- =================================================
+               PROJECTS
+          ================================================== -->
+          <li class="flex items-center lg:h-[92px]">
+            <a
+              href="/projects.html"
+              class="transition-colors hover:text-[#0068c9]"
+            >
+              Projects
+            </a>
+          </li>
+
+          <!-- =================================================
+               RESOURCES
+          ================================================== -->
+          <li class="flex items-center lg:h-[92px]">
+            <a
+              href="/resources.html"
+              class="transition-colors hover:text-[#0068c9]"
+            >
+              Resources
+            </a>
+          </li>
+
+          <!-- =================================================
+               CONTACT
+          ================================================== -->
+          <li class="flex items-center lg:h-[92px]">
+            <a
+              href="/contact.html"
+              class="transition-colors hover:text-[#0068c9]"
+            >
+              Contact Us
+            </a>
+          </li>
+
+          <!-- =================================================
+               MOBILE LET'S CONNECT
+               SAME NAV — NOT ANOTHER MENU
+          ================================================== -->
+          <li class="border-b-0 pt-3 lg:hidden">
+            <a
+              href="/contact.html"
+              class="flex h-12 w-full items-center justify-center rounded-full bg-[#071425] px-4 text-white transition hover:bg-[#0068c9] hover:text-white"
+            >
+              Let's Connect
+            </a>
+          </li>
+        </ul>
+
+        <!-- =====================================================
+             RIGHT ACTIONS
+        ====================================================== -->
+        <div class="flex shrink-0 items-center gap-3">
+          <!-- ONE SEARCH BUTTON -->
+          <button
+            id="navbarSearchButton"
+            type="button"
+            aria-label="Open search"
+            aria-expanded="false"
+            class="flex h-11 w-11 items-center justify-center rounded-xl text-[#071425] transition-colors hover:bg-blue-50"
+          >
+            <svg
+              class="h-[22px] w-[22px]"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              aria-hidden="true"
+            >
+              <circle cx="11" cy="11" r="7"></circle>
+              <path d="m20 20-3.5-3.5"></path>
+            </svg>
+          </button>
+
+          <!-- Desktop CTA -->
+          <a
+            href="/contact.html"
+            class="hidden h-[48px] items-center justify-center rounded-full border-2 border-[#071425] bg-white/20 px-7 text-[15px] font-normal text-[#071425] backdrop-blur-sm transition-all hover:bg-[#071425] hover:text-white lg:inline-flex"
+          >
+            Let's Connect
+          </a>
+
+          <!-- Hamburger -->
+          <button
+            id="mobileMenuButton"
+            type="button"
+            aria-label="Open navigation menu"
+            aria-controls="mainNav"
+            aria-expanded="false"
+            class="flex h-11 w-11 items-center justify-center rounded-xl border border-[#071425]/20 bg-white/40 text-[#071425] backdrop-blur-sm lg:hidden"
+          >
+            <svg
+              class="h-6 w-6"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <path d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================================================
+         ONE SEARCH DROPDOWN
+    ========================================================== -->
+    <div
+      id="navbarSearchBox"
+      class="absolute left-1/2 top-full z-[100] hidden w-[90%] max-w-[650px] -translate-x-1/2 rounded-b-2xl bg-white px-5 py-7 shadow-[0_14px_35px_rgba(15,23,42,0.14)]"
+    >
+      <form class="flex items-center gap-4">
+        <div class="relative flex-1">
+          <svg
+            class="absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="7"></circle>
+            <path d="m20 20-3.5-3.5"></path>
+          </svg>
+
+          <input
+            type="text"
+            placeholder="Search..."
+            class="h-[50px] w-full rounded-xl border border-[#9bd8ff] bg-white pl-14 pr-4 text-[15px] font-medium text-gray-700 outline-none shadow-[0_0_18px_rgba(0,145,220,0.35)] placeholder:text-gray-400"
+          />
+        </div>
+
+        <button
+          id="navbarSearchClose"
+          type="button"
+          aria-label="Close search"
+          class="flex h-11 w-11 items-center justify-center rounded-lg text-[#0068c9] transition-colors hover:bg-blue-50"
+        >
+          <svg
+            class="h-8 w-8"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            aria-hidden="true"
+          >
+            <path d="M18 6 6 18"></path>
+            <path d="M6 6 18 18"></path>
+          </svg>
+        </button>
+      </form>
+    </div>
+  </nav>
+</header>

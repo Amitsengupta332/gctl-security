@@ -1,0 +1,2678 @@
+import "./style.css";
+import { initNavbar } from "./navbar.js";
+import { initReusablePages } from "./reusable-pages.js";
+import { initServiceDetailsPage } from "./service-details.js";
+
+import { initServicesIndustriesSliders } from "./services-industries.js";
+import { initHeroSlider } from "./hero-slider.js";
+import { initProductSlider } from "./product-slider.js";
+import { initIndustryDetailsPage } from "./industry-details.js";
+
+import { initProjectsPage } from "./projects-page.js";
+import { initProjectDetailsPage } from "./project-details-page.js";
+import { renderCategoryProductSections } from "./pages/category-products-renderer.js";
+import { initProductDetailsPage } from "./pages/product-details-page.js";
+
+async function loadComponents() {
+  const components = document.querySelectorAll("[data-component]");
+
+  await Promise.all(
+    Array.from(components).map(async function (component) {
+      const file = component.getAttribute("data-component");
+
+      try {
+        const response = await fetch(file);
+
+        if (!response.ok) {
+          throw new Error(`Component not found: ${file}`);
+        }
+
+        const html = await response.text();
+        component.innerHTML = html;
+      } catch (error) {
+        console.error(error);
+      }
+    }),
+  );
+
+  // initNavbarMenu();
+  // initNavbarSearch();
+  // initNavbarScroll();
+  // initProductMegaMenu();
+
+  initNavbar();
+  initProductMegaMenu();
+
+  initReusablePages();
+
+  renderCategoryProductSections();
+  initProductDetailsPage();
+
+  initServiceDetailsPage();
+  initIndustryDetailsPage();
+  initServicesIndustriesSliders();
+  initProjectsPage();
+  initProjectDetailsPage();
+  initHeroSlider();
+  initProductSlider();
+  initHeroVideoModal();
+  initProjectTypeMultiSelect();
+  initCategoryProductFilter();
+  initFooterYear();
+  initBrokenImageHandler();
+  watchBrokenImages();
+}
+
+function initProjectTypeMultiSelect() {
+  const multiSelects = document.querySelectorAll("[data-multi-select]");
+
+  if (!multiSelects.length) return;
+
+  multiSelects.forEach(function (multiSelect) {
+    if (multiSelect.dataset.multiSelectReady === "true") return;
+    multiSelect.dataset.multiSelectReady = "true";
+
+    const button = multiSelect.querySelector("[data-multi-select-button]");
+    const menu = multiSelect.querySelector("[data-multi-select-menu]");
+    const text = multiSelect.querySelector("[data-multi-select-text]");
+    const arrow = multiSelect.querySelector("[data-multi-select-arrow]");
+    const checkboxes = Array.from(
+      multiSelect.querySelectorAll('input[type="checkbox"]'),
+    );
+
+    if (!button || !menu || !text || !checkboxes.length) return;
+
+    function openMenu() {
+      menu.classList.remove("hidden");
+      button.setAttribute("aria-expanded", "true");
+
+      if (arrow) {
+        arrow.classList.add("rotate-180");
+      }
+    }
+
+    function closeMenu() {
+      menu.classList.add("hidden");
+      button.setAttribute("aria-expanded", "false");
+
+      if (arrow) {
+        arrow.classList.remove("rotate-180");
+      }
+    }
+
+    function toggleMenu() {
+      if (menu.classList.contains("hidden")) {
+        openMenu();
+      } else {
+        closeMenu();
+      }
+    }
+
+    function updateSelectedText() {
+      const selected = checkboxes
+        .filter(function (checkbox) {
+          return checkbox.checked;
+        })
+        .map(function (checkbox) {
+          return checkbox.value;
+        });
+
+      if (!selected.length) {
+        text.textContent = "Select project type";
+        text.classList.add("text-[#8b98aa]");
+        button.classList.remove("border-red-400");
+        return;
+      }
+
+      text.classList.remove("text-[#8b98aa]");
+      button.classList.remove("border-red-400");
+
+      if (selected.length === 1) {
+        text.textContent = selected[0];
+      } else if (selected.length === 2) {
+        text.textContent = selected.join(", ");
+      } else {
+        text.textContent = `${selected.length} project types selected`;
+      }
+    }
+
+    button.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      toggleMenu();
+    });
+
+    menu.addEventListener("click", function (e) {
+      e.stopPropagation();
+    });
+
+    checkboxes.forEach(function (checkbox) {
+      checkbox.addEventListener("change", updateSelectedText);
+    });
+
+    const form = multiSelect.closest("form");
+
+    if (form) {
+      form.addEventListener("submit", function (e) {
+        const hasSelectedItem = checkboxes.some(function (checkbox) {
+          return checkbox.checked;
+        });
+
+        if (!hasSelectedItem) {
+          e.preventDefault();
+
+          button.classList.add("border-red-400");
+          text.textContent = "Please select at least one project type";
+          text.classList.remove("text-[#8b98aa]");
+
+          openMenu();
+        }
+      });
+    }
+
+    document.addEventListener("click", function (e) {
+      if (!multiSelect.contains(e.target)) {
+        closeMenu();
+      }
+    });
+
+    window.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") {
+        closeMenu();
+      }
+    });
+
+    updateSelectedText();
+  });
+}
+
+function initFooterYear() {
+  const yearSpan = document.getElementById("copyrightYear");
+
+  if (!yearSpan) return;
+
+  yearSpan.textContent = new Date().getFullYear();
+}
+
+function initHeroVideoModal() {
+  if (window.gctlHeroVideoModalReady === true) return;
+
+  window.gctlHeroVideoModalReady = true;
+
+  function closeVideoModal(modal) {
+    if (!modal) return;
+
+    const frame = modal.querySelector("[data-hero-video-frame]");
+
+    if (frame) {
+      frame.src = "";
+    }
+
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+
+    document.documentElement.style.overflow = "";
+    document.body.style.overflow = "";
+  }
+
+  function openVideoModal(button) {
+    const videoId = button.getAttribute("data-youtube-video-id");
+    const modal = document.querySelector("[data-hero-video-modal]");
+
+    if (!videoId || !modal) return;
+
+    const frame = modal.querySelector("[data-hero-video-frame]");
+
+    if (!frame) return;
+
+    frame.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+  }
+
+  document.addEventListener("click", function (e) {
+    const openButton = e.target.closest("[data-hero-video-open]");
+
+    if (openButton) {
+      e.preventDefault();
+      openVideoModal(openButton);
+      return;
+    }
+
+    const closeButton = e.target.closest("[data-hero-video-close]");
+
+    if (closeButton) {
+      e.preventDefault();
+
+      const modal = closeButton.closest("[data-hero-video-modal]");
+      closeVideoModal(modal);
+      return;
+    }
+
+    if (e.target.matches("[data-hero-video-modal]")) {
+      closeVideoModal(e.target);
+    }
+  });
+
+  window.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape") return;
+
+    const openedModal = document.querySelector(
+      "[data-hero-video-modal]:not(.hidden)",
+    );
+
+    closeVideoModal(openedModal);
+  });
+}
+
+function createImageFallback(img) {
+  const fallback = document.createElement("div");
+
+  fallback.setAttribute("data-image-fallback", "true");
+  fallback.className =
+    "flex w-full items-center justify-center rounded-[inherit] bg-[#f5f8fc]";
+
+  const rect = img.getBoundingClientRect();
+
+  if (rect.height > 40) {
+    fallback.style.height = `${Math.round(rect.height)}px`;
+  } else {
+    fallback.classList.add("min-h-[180px]");
+  }
+
+  fallback.innerHTML = `<span class="sr-only">Image unavailable</span>`;
+
+  return fallback;
+}
+
+function initBrokenImageHandler(root = document) {
+  const images = root.querySelectorAll("img");
+
+  images.forEach(function (img) {
+    if (img.dataset.brokenImageReady === "true") return;
+
+    img.dataset.brokenImageReady = "true";
+
+    img.onerror = null;
+    img.removeAttribute("onerror");
+
+    function hideBrokenImage() {
+      const parent = img.parentElement;
+
+      if (parent && !parent.querySelector("[data-image-fallback]")) {
+        parent.appendChild(createImageFallback(img));
+      }
+
+      img.remove();
+    }
+
+    img.addEventListener("error", hideBrokenImage, { once: true });
+
+    if (img.complete && img.naturalWidth === 0) {
+      hideBrokenImage();
+    }
+  });
+}
+
+function watchBrokenImages() {
+  if (window.gctlBrokenImageObserverReady === true) return;
+
+  window.gctlBrokenImageObserverReady = true;
+
+  const observer = new MutationObserver(function (mutations) {
+    mutations.forEach(function (mutation) {
+      mutation.addedNodes.forEach(function (node) {
+        if (node.nodeType !== 1) return;
+
+        if (node.matches && node.matches("img")) {
+          initBrokenImageHandler(node.parentElement || document);
+          return;
+        }
+
+        initBrokenImageHandler(node);
+      });
+    });
+  });
+
+  observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+  });
+}
+
+// function initHeroSlider() {
+//   const slider = document.getElementById("heroSlider");
+
+//   if (!slider) return;
+
+//   const slides = Array.from(slider.querySelectorAll("[data-hero-slide]"));
+//   const prevButton = slider.querySelector("#heroPrev");
+//   const nextButton = slider.querySelector("#heroNext");
+//   const dotsWrapper = slider.querySelector("#heroDots");
+
+//   if (!slides.length || !dotsWrapper) return;
+
+//   let currentSlide = 0;
+//   let autoplayInterval = null;
+//   let touchStartX = 0;
+//   let touchEndX = 0;
+
+//   dotsWrapper.innerHTML = "";
+
+//   slides.forEach(function (slide, index) {
+//     slide.classList.add("transition-all", "duration-700");
+
+//     if (index === 0) {
+//       slide.classList.remove("opacity-0", "invisible", "pointer-events-none");
+//       slide.classList.add("opacity-100", "visible", "pointer-events-auto");
+//     } else {
+//       slide.classList.remove("opacity-100", "visible", "pointer-events-auto");
+//       slide.classList.add("opacity-0", "invisible", "pointer-events-none");
+//     }
+
+//     const dot = document.createElement("button");
+//     dot.type = "button";
+//     dot.setAttribute("aria-label", `Go to slide ${index + 1}`);
+
+//     dot.className =
+//       index === 0
+//         ? "w-8 h-2 rounded-full bg-[#0068c9] transition-all duration-300"
+//         : "w-2 h-2 rounded-full bg-[#0068c9]/30 transition-all duration-300";
+
+//     dot.addEventListener("click", function (e) {
+//       e.preventDefault();
+//       showSlide(index);
+//       restartAutoplay();
+//     });
+
+//     dotsWrapper.appendChild(dot);
+//   });
+
+//   const dots = Array.from(dotsWrapper.querySelectorAll("button"));
+
+//   function updateDots() {
+//     dots.forEach(function (dot, index) {
+//       dot.className =
+//         index === currentSlide
+//           ? "w-8 h-2 rounded-full bg-[#0068c9] transition-all duration-300"
+//           : "w-2 h-2 rounded-full bg-[#0068c9]/30 transition-all duration-300";
+//     });
+//   }
+
+//   function showSlide(index) {
+//     slides[currentSlide].classList.remove(
+//       "opacity-100",
+//       "visible",
+//       "pointer-events-auto",
+//     );
+//     slides[currentSlide].classList.add(
+//       "opacity-0",
+//       "invisible",
+//       "pointer-events-none",
+//     );
+
+//     currentSlide = (index + slides.length) % slides.length;
+
+//     slides[currentSlide].classList.remove(
+//       "opacity-0",
+//       "invisible",
+//       "pointer-events-none",
+//     );
+//     slides[currentSlide].classList.add(
+//       "opacity-100",
+//       "visible",
+//       "pointer-events-auto",
+//     );
+
+//     updateDots();
+//   }
+
+//   function nextSlide() {
+//     showSlide(currentSlide + 1);
+//   }
+
+//   function prevSlide() {
+//     showSlide(currentSlide - 1);
+//   }
+
+//   function startAutoplay() {
+//     stopAutoplay();
+
+//     autoplayInterval = setInterval(function () {
+//       nextSlide();
+//     }, 4500);
+//   }
+
+//   function stopAutoplay() {
+//     if (autoplayInterval) {
+//       clearInterval(autoplayInterval);
+//       autoplayInterval = null;
+//     }
+//   }
+
+//   function restartAutoplay() {
+//     stopAutoplay();
+//     startAutoplay();
+//   }
+
+//   if (nextButton) {
+//     nextButton.addEventListener("click", function (e) {
+//       e.preventDefault();
+//       e.stopPropagation();
+
+//       nextSlide();
+//       restartAutoplay();
+//     });
+//   }
+
+//   if (prevButton) {
+//     prevButton.addEventListener("click", function (e) {
+//       e.preventDefault();
+//       e.stopPropagation();
+
+//       prevSlide();
+//       restartAutoplay();
+//     });
+//   }
+
+//   slider.addEventListener("mouseenter", stopAutoplay);
+//   // slider.addEventListener("mouseenter", stopAutoplay);
+
+//   slider.addEventListener(
+//     "touchstart",
+//     function (e) {
+//       touchStartX = e.changedTouches[0].screenX;
+//     },
+//     { passive: true },
+//   );
+
+//   slider.addEventListener(
+//     "touchend",
+//     function (e) {
+//       touchEndX = e.changedTouches[0].screenX;
+
+//       const swipeDistance = touchStartX - touchEndX;
+
+//       if (Math.abs(swipeDistance) > 50) {
+//         if (swipeDistance > 0) {
+//           nextSlide();
+//         } else {
+//           prevSlide();
+//         }
+
+//         restartAutoplay();
+//       }
+//     },
+//     { passive: true },
+//   );
+
+//   document.addEventListener("visibilitychange", function () {
+//     if (document.hidden) {
+//       stopAutoplay();
+//     }
+//   });
+
+//   // Autoplay disabled for Lighthouse stability.
+// }
+
+// function initProductSlider() {
+//   const sliders = document.querySelectorAll("[data-product-slider]");
+
+//   if (!sliders.length) return;
+
+//   sliders.forEach(function (slider) {
+//     const section = slider.closest("section");
+//     const track = slider.querySelector("[data-product-track]");
+
+//     const prevButtons = section
+//       ? section.querySelectorAll("[data-product-prev]")
+//       : slider.querySelectorAll("[data-product-prev]");
+
+//     const nextButtons = section
+//       ? section.querySelectorAll("[data-product-next]")
+//       : slider.querySelectorAll("[data-product-next]");
+
+//     if (!track) return;
+
+//     function getScrollAmount() {
+//       const firstCard = track.querySelector(".snap-start");
+
+//       if (!firstCard) return 280;
+
+//       const trackStyle = window.getComputedStyle(track);
+//       const gap = parseFloat(trackStyle.columnGap || trackStyle.gap || 12);
+
+//       return firstCard.offsetWidth + gap;
+//     }
+
+//     nextButtons.forEach(function (button) {
+//       button.addEventListener("click", function (e) {
+//         e.preventDefault();
+
+//         track.scrollBy({
+//           left: getScrollAmount(),
+//           behavior: "smooth",
+//         });
+//       });
+//     });
+
+//     prevButtons.forEach(function (button) {
+//       button.addEventListener("click", function (e) {
+//         e.preventDefault();
+
+//         track.scrollBy({
+//           left: -getScrollAmount(),
+//           behavior: "smooth",
+//         });
+//       });
+//     });
+//   });
+
+//   const rotatingTexts = document.querySelectorAll("[data-call-rotate]");
+
+//   rotatingTexts.forEach(function (item) {
+//     const phone = item.getAttribute("data-phone");
+
+//     if (!phone) return;
+
+//     let showPhone = false;
+
+//     setInterval(function () {
+//       showPhone = !showPhone;
+//       item.textContent = showPhone ? phone : "Call for Price";
+//     }, 2200);
+//   });
+// }
+
+function initProductMegaMenu() {
+  const tabs = document.querySelectorAll("[data-product-mega-tab]");
+  const title = document.getElementById("productMegaTitle");
+  const subList = document.getElementById("productMegaSubList");
+  const previewTitle = document.getElementById("productMegaPreviewTitle");
+  const previewList = document.getElementById("productMegaPreviewList");
+  const viewAll = document.getElementById("productMegaViewAll");
+
+  // Use the existing desktop mega-menu elements as a proper nested accordion
+  // on mobile. Reparent, rather than duplicate, the category data or links.
+  const megaGrid = tabs[0]?.closest("[data-products-panel]")?.firstElementChild;
+  const categoryList = tabs[0]?.parentElement;
+  const subColumn = subList?.parentElement;
+  const previewColumn = previewList?.parentElement;
+  const desktopBreakpoint = window.matchMedia("(min-width: 1024px)");
+  let openMobileCategory = null;
+
+  subColumn?.setAttribute("data-mobile-sub-column", "");
+  previewColumn?.setAttribute("data-mobile-preview-column", "");
+
+  function movePreviewBack() {
+    if (megaGrid && previewColumn?.parentElement !== megaGrid) {
+      megaGrid.appendChild(previewColumn);
+    }
+  }
+
+  function moveMobileCategoryUnderTab(tab) {
+    if (desktopBreakpoint.matches || !tab || !subColumn) return;
+    movePreviewBack();
+    tab.insertAdjacentElement("afterend", subColumn);
+    subColumn.style.display = "";
+    previewColumn.style.display = "none";
+    openMobileCategory = tab.getAttribute("data-product-mega-tab");
+    tabs.forEach(function (item) {
+      item.setAttribute(
+        "aria-expanded",
+        item === tab ? "true" : "false",
+      );
+    });
+  }
+
+  function syncMobileProductColumns() {
+    if (!megaGrid || !categoryList || !subColumn || !previewColumn) return;
+
+    movePreviewBack();
+    if (desktopBreakpoint.matches) {
+      megaGrid.appendChild(subColumn);
+      megaGrid.appendChild(previewColumn);
+      subColumn.style.display = "";
+      previewColumn.style.display = "";
+      openMobileCategory = null;
+      tabs.forEach(function (tab) { tab.removeAttribute("aria-expanded"); });
+      return;
+    }
+
+    // Keep the submenu adjacent to its parent category, not under all 13 tabs.
+    const selected = Array.from(tabs).find(function (tab) {
+      return tab.getAttribute("data-product-mega-tab") === openMobileCategory;
+    }) || tabs[0];
+    selected.insertAdjacentElement("afterend", subColumn);
+    subColumn.style.display = openMobileCategory ? "" : "none";
+    previewColumn.style.display = "none";
+  }
+
+  if (
+    !tabs.length ||
+    !title ||
+    !subList ||
+    !previewTitle ||
+    !previewList ||
+    !viewAll
+  ) {
+    return;
+  }
+
+  const data = {
+    cctv: {
+      title: "CCTV Surveillance",
+      link: "/cctv-surveillance.html",
+      sub: [
+        {
+          name: "HD CCTV Camera",
+          link: "/hd-cctv-camera.html",
+          subSub: [
+            {
+              name: "HD Dome Camera",
+              link: "/hd-dome-camera.html",
+              img: "/images/products/cctv_category_images_avif/hd_dome_camera.avif",
+            },
+            {
+              name: "HD Bullet Camera",
+              link: "/hd-bullet-camera.html",
+              img: "/images/products/cctv_category_images_avif/hd_bullet_camera_1.avif",
+            },
+            {
+              name: "HD Turret Camera",
+              link: "/hd-turret-camera.html",
+              img: "/images/products/cctv_category_images_avif/hd_turret_camera_600x450.avif",
+            },
+            {
+              name: "HD PTZ Camera",
+              link: "/hd-ptz-camera.html",
+              img: "/images/products/cctv_category_images_avif/hd_ptz_camera.avif",
+            },
+          ],
+        },
+        {
+          name: "IP Camera",
+          link: "/ip-camera.html",
+          subSub: [
+            {
+              name: "IP Dome Camera",
+              link: "/ip-dome-camera.html",
+              img: "/images/products/all-ip-camera-category-avif-600x450/ip-dome-camera-category-600x450.avif",
+            },
+            {
+              name: "IP Bullet Camera",
+              link: "/ip-bullet-camera.html",
+              img: "/images/products/all-ip-camera-category-avif-600x450/ip-bullet-camera-category-600x450.avif",
+            },
+            {
+              name: "WiFi IP Camera",
+              link: "/wifi-ip-camera.html",
+              img: "/images/products/all-ip-camera-category-avif-600x450/wifi-ip-camera-category-600x450.avif",
+            },
+            {
+              name: "PoE IP Camera",
+              link: "/poe-ip-camera.html",
+              img: "/images/products/all-ip-camera-category-avif-600x450/poe-ip-camera-category-600x450.avif",
+            },
+          ],
+        },
+        {
+          name: "ANPR Number Plate Camera",
+          link: "/anpr-number-plate-camera.html",
+          subSub: [
+            {
+              name: "Fixed ANPR Camera",
+              link: "/fixed-anpr-camera.html",
+              img: "/images/sub-sub-categories/cctv-surveillance-sub-sub/anpr/fixed-anpr-camera.avif",
+            },
+            {
+              name: "Parking ANPR Camera",
+              link: "/parking-anpr-camera.html",
+              img: "/images/sub-sub-categories/cctv-surveillance-sub-sub/anpr/parking-anpr-camera.avif",
+            },
+            {
+              name: "Traffic ANPR Camera",
+              link: "/traffic-anpr-camera.html",
+              img: "/images/sub-sub-categories/cctv-surveillance-sub-sub/anpr/traffic-anpr-camera.avif",
+            },
+          ],
+        },
+        {
+          name: "AI Camera",
+          link: "/ai-camera.html",
+          subSub: [
+            {
+              name: "Face Recognition Camera",
+              link: "/face-recognition-camera.html",
+              img: "/images/sub-sub-categories/cctv-surveillance-sub-sub/ai-camera/face-recognition-camera.avif",
+            },
+            {
+              name: "People Counting Camera",
+              link: "/people-counting-camera.html",
+              img: "/images/sub-sub-categories/cctv-surveillance-sub-sub/ai-camera/people-counting-camera.avif",
+            },
+            {
+              name: "Human Detection Camera",
+              link: "/human-detection-camera.html",
+              img: "/images/sub-sub-categories/cctv-surveillance-sub-sub/ai-camera/human-detection-camera.avif",
+            },
+            {
+              name: "Vehicle Detection Camera",
+              link: "/vehicle-detection-camera.html",
+              img: "/images/sub-sub-categories/cctv-surveillance-sub-sub/ai-camera/vehicle-detection-camera.avif",
+            },
+          ],
+        },
+        {
+          name: "Body Temperature Camera",
+          link: "/body-temperature-camera.html",
+          subSub: [
+            {
+              name: "Thermal Temperature Camera",
+              link: "/thermal-temperature-camera.html",
+              img: "/images/sub-sub-categories/cctv-surveillance-sub-sub/Body-Temperature/thermal-temperature-camera.avif",
+            },
+            {
+              name: "Face Temperature Camera",
+              link: "/face-temperature-camera.html",
+              img: "/images/sub-sub-categories/cctv-surveillance-sub-sub/Body-Temperature/face-temperature-camera.avif",
+            },
+          ],
+        },
+        {
+          name: "Network Video Recorder (NVR)",
+          link: "/network-video-recorder-nvr.html",
+          subSub: [
+            {
+              name: "4 Channel NVR",
+              link: "/4-channel-nvr.html",
+              img: "/images/sub-sub-categories/cctv-surveillance-sub-sub/nvr/4-channel-nvr.avif",
+            },
+            {
+              name: "8 Channel NVR",
+              link: "/8-channel-nvr.html",
+              img: "/images/sub-sub-categories/cctv-surveillance-sub-sub/nvr/8-channel-nvr.avif",
+            },
+            {
+              name: "16 Channel NVR",
+              link: "/16-channel-nvr.html",
+              img: "/images/sub-sub-categories/cctv-surveillance-sub-sub/nvr/16-channel-nvr.avif",
+            },
+            {
+              name: "32 Channel NVR",
+              link: "/32-channel-nvr.html",
+              img: "/images/sub-sub-categories/cctv-surveillance-sub-sub/nvr/32-channel-nvr.avif",
+            },
+          ],
+        },
+        {
+          name: "Digital Video Recorder (DVR)",
+          link: "/digital-video-recorder-dvr.html",
+          subSub: [
+            {
+              name: "4 Channel DVR",
+              link: "/4-channel-dvr.html",
+              img: "/images/sub-sub-categories/cctv-surveillance-sub-sub/dvr/4-channel-dvr.avif",
+            },
+            {
+              name: "8 Channel DVR",
+              link: "/8-channel-dvr.html",
+              img: "/images/sub-sub-categories/cctv-surveillance-sub-sub/dvr/8-channel-dvr.avif",
+            },
+            {
+              name: "16 Channel DVR",
+              link: "/16-channel-dvr.html",
+              img: "/images/sub-sub-categories/cctv-surveillance-sub-sub/dvr/16-channel-dvr.avif",
+            },
+          ],
+        },
+        {
+          name: "CCTV Camera Accessories",
+          link: "/cctv-camera-accessories.html",
+          subSub: [
+            {
+              name: "CCTV Cable",
+              link: "/cctv-cable.html",
+              img: "/images/sub-sub-categories/cctv-surveillance-sub-sub/cctv-camera-accessories/cctv-cable.avif",
+            },
+            {
+              name: "CCTV Power Supply",
+              link: "/cctv-power-supply.html",
+              img: "/images/sub-sub-categories/cctv-surveillance-sub-sub/cctv-camera-accessories/cctv-power-supply.avif",
+            },
+            {
+              name: "CCTV Bracket",
+              link: "/cctv-bracket.html",
+              img: "/images/sub-sub-categories/cctv-surveillance-sub-sub/cctv-camera-accessories/cctv-bracket.avif",
+            },
+            {
+              name: "CCTV Connector",
+              link: "/cctv-connector.html",
+              img: "/images/sub-sub-categories/cctv-surveillance-sub-sub/cctv-camera-accessories/cctv-connector.avif",
+            },
+          ],
+        },
+        {
+          name: "CC Camera",
+          link: "/cc-camera.html",
+          subSub: [
+            {
+              name: "Indoor CC Camera",
+              link: "/indoor-cc-camera.html",
+              img: "/images/sub-sub-categories/cctv-surveillance-sub-sub/cc-camera/indoor-cc-camera.avif",
+            },
+            {
+              name: "Outdoor CC Camera",
+              link: "/outdoor-cc-camera.html",
+              img: "/images/sub-sub-categories/cctv-surveillance-sub-sub/cc-camera/indoor-cc-camera.avif",
+            },
+          ],
+        },
+      ],
+    },
+
+    automation: {
+      title: "Automation Products",
+      link: "/automation-products.html",
+      sub: [
+        {
+          name: "Sliding Gate Motor",
+          link: "/sliding-gate-motor.html",
+          subSub: [
+            {
+              name: "Residential Sliding Gate Motor",
+              link: "/residential-sliding-gate-motor.html",
+              img: "/images/sub-sub-categories/automation-products/sliding-gate-motor/residential_sliding_gate_motor.avif",
+            },
+            {
+              name: "Industrial Sliding Gate Motor",
+              link: "/industrial-sliding-gate-motor.html",
+              img: "/images/sub-sub-categories/automation-products/sliding-gate-motor/industrial_sliding_gate_motor.avif",
+            },
+            {
+              name: "Heavy Duty Sliding Gate Motor",
+              link: "/heavy-duty-sliding-gate-motor.html",
+              img: "/images/sub-sub-categories/automation-products/sliding-gate-motor/heavy_duty_sliding_gate_motor.avif",
+            },
+          ],
+        },
+        {
+          name: "Swing Gate Motor",
+          link: "/swing-gate-motor.html",
+          subSub: [
+            {
+              name: "Single Leaf Swing Gate Motor",
+              link: "/single-leaf-swing-gate-motor.html",
+              img: "/images/sub-sub-categories/automation-products/swing-gate-motor/single_leaf_swing_gate_motor.avif",
+            },
+            {
+              name: "Double Leaf Swing Gate Motor",
+              link: "/double-leaf-swing-gate-motor.html",
+              img: "/images/sub-sub-categories/automation-products/swing-gate-motor/double_leaf_swing_gate_motor.avif",
+            },
+            {
+              name: "Underground Swing Gate Motor",
+              link: "/underground-swing-gate-motor.html",
+              img: "/images/sub-sub-categories/automation-products/swing-gate-motor/underground_swing_gate_motor.avif",
+            },
+          ],
+        },
+        {
+          name: "Automatic Glass Door",
+          link: "/automatic-glass-door.html",
+          subSub: [
+            {
+              name: "Sensor Sliding Glass Door",
+              link: "/sensor-sliding-glass-door.html",
+              img: "/images/sub-sub-categories/automation-products/automatic-glassdoor/sensor-sliding-glass-door.avif",
+            },
+            {
+              name: "Telescopic Glass Door",
+              link: "/telescopic-glass-door.html",
+              img: "/images/sub-sub-categories/automation-products/automatic-glassdoor/telescopic-glass-door.avif",
+            },
+            {
+              name: "Glass Door Accessories",
+              link: "/glass-door-accessories.html",
+              img: "/images/sub-sub-categories/automation-products/automatic-glassdoor/glass-door-accessories.avif",
+            },
+          ],
+        },
+        {
+          name: "Garage Door Automation",
+          link: "/garage-door-automation.html",
+          subSub: [
+            {
+              name: "Sectional Garage Door",
+              link: "/sectional-garage-door.html",
+              img: "/images/sub-sub-categories/automation-products/automation-products-sub-sub-category-avif-600x450/sectional-garage-door.avif",
+            },
+            {
+              name: "Rolling Garage Door",
+              link: "/rolling-garage-door.html",
+              img: "/images/sub-sub-categories/automation-products/automation-products-sub-sub-category-avif-600x450/rolling-garage-door.avif",
+            },
+          ],
+        },
+        {
+          name: "Rolling Shutter Motor",
+          link: "/rolling-shutter-motor.html",
+          subSub: [
+            {
+              name: "AC Rolling Shutter Motor",
+              link: "/ac-rolling-shutter-motor.html",
+              img: "/images/sub-sub-categories/automation-products/automation-products-sub-sub-category-avif-600x450/ac-rolling-shutter-motor.avif",
+            },
+            {
+              name: "DC Rolling Shutter Motor",
+              link: "/dc-rolling-shutter-motor.html",
+              img: "/images/sub-sub-categories/automation-products/automation-products-sub-sub-category-avif-600x450/dc-rolling-shutter-motor.avif",
+            },
+          ],
+        },
+        {
+          name: "Automatic Sensor Door",
+          link: "/automatic-sensor-door.html",
+          subSub: [
+            {
+              name: "Sliding Sensor Door",
+              link: "/sliding-sensor-door.html",
+              img: "/images/sub-sub-categories/automation-products/automation-products-sub-sub-category-avif-600x450/sliding-sensor-door.avif",
+            },
+            {
+              name: "Swing Sensor Door",
+              link: "/swing-sensor-door.html",
+              img: "/images/sub-sub-categories/automation-products/automation-products-sub-sub-category-avif-600x450/swing-sensor-door.avif",
+            },
+          ],
+        },
+        {
+          name: "Road Blocker System",
+          link: "/road-blocker-system.html",
+          subSub: [
+            {
+              name: "Hydraulic Road Blocker",
+              link: "/hydraulic-road-blocker.html",
+              img: "/images/sub-sub-categories/automation-products/automation-products-sub-sub-category-avif-600x450/hydraulic-road-blocker.avif",
+            },
+            {
+              name: "Automatic Road Blocker",
+              link: "/automatic-road-blocker.html",
+              img: "/images/sub-sub-categories/automation-products/automation-products-sub-sub-category-avif-600x450/automatic-road-blocker.avif",
+            },
+          ],
+        },
+        {
+          name: "Industrial Door Automation",
+          link: "/industrial-door-automation.html",
+          subSub: [
+            {
+              name: "High Speed Door",
+              link: "/high-speed-door.html",
+              img: "/images/sub-sub-categories/automation-products/automation-products-sub-sub-category-avif-600x450/high-speed-door.avif",
+            },
+            {
+              name: "Sectional Industrial Door",
+              link: "/sectional-industrial-door.html",
+              img: "/images/sub-sub-categories/automation-products/automation-products-sub-sub-category-avif-600x450/sectional-industrial-door.avif",
+            },
+          ],
+        },
+      ],
+    },
+
+    entrance: {
+      title: "Entrance Security Solutions",
+      link: "/entrance-security-solutions.html",
+      sub: [
+        {
+          name: "Archway Walk Through Metal Detector",
+          link: "/archway-walk-through-metal-detector.html",
+          subSub: [
+            {
+              name: "6 Zone Archway Metal Detector",
+              link: "/6-zone-archway-metal-detector.html",
+              img: "/images/sub-sub-categories/entrance-security/metal-detector/6-zone-walk-through-metal-detector.avif",
+            },
+            {
+              name: "18 Zone Archway Metal Detector",
+              link: "/18-zone-archway-metal-detector.html",
+              img: "/images/sub-sub-categories/entrance-security/metal-detector/18-zone-walk-through-metal-detector.avif",
+            },
+            {
+              name: "33 Zone Archway Metal Detector",
+              link: "/33-zone-archway-metal-detector.html",
+              img: "/images/sub-sub-categories/entrance-security/metal-detector/33-zone-walk-through-metal-detector.avif",
+            },
+            {
+              name: "45 Zone Archway Metal Detector",
+              link: "/45-zone-archway-metal-detector.html",
+              img: "/images/sub-sub-categories/entrance-security/metal-detector/45-zone-walk-through-metal-detector.avif",
+            },
+            {
+              name: "60 Zone Archway Metal Detector",
+              link: "/60-zone-archway-metal-detector.html",
+              img: "/images/sub-sub-categories/entrance-security/metal-detector/60-zone-walk-through-metal-detector.avif",
+            },
+            {
+              name: "Waterproof Archway Metal Detector",
+              link: "/waterproof-archway-metal-detector.html",
+              img: "/images/sub-sub-categories/entrance-security/metal-detector/waterproof-walk-through-metal-detector.avif",
+            },
+            {
+              name: "Portable Archway Metal Detector",
+              link: "/portable-archway-metal-detector.html",
+              img: "/images/sub-sub-categories/entrance-security/metal-detector/portable-walk-through-metal-detector.avif",
+            },
+            {
+              name: "Single Panel Archway Metal Detector",
+              link: "/single-panel-archway-metal-detector.html",
+              img: "/images/sub-sub-categories/entrance-security/metal-detector/single-panel-walk-through-metal-detector.avif",
+            },
+          ],
+        },
+        {
+          name: "Hand Held Metal Detector",
+          link: "/hand-held-metal-detector.html",
+          subSub: [
+            {
+              name: "Compact Hand Held Metal Detector",
+              link: "/compact-hand-held-metal-detector.html",
+              img: "/images/sub-categories/Entrance-Security-Solutions-sub-category/hand-held-metal-detector.avif",
+            },
+            {
+              name: "Wand Hand Held Metal Detector",
+              link: "/wand-hand-held-metal-detector.html",
+              img: "/images/sub-categories/Entrance-Security-Solutions-sub-category/hand-held-metal-detector.avif",
+            },
+          ],
+        },
+        {
+          name: "X Ray Baggage Scanner",
+          link: "/x-ray-baggage-scanner.html",
+          subSub: [
+            {
+              name: "Single Energy Baggage Scanner",
+              link: "/single-energy-baggage-scanner.html",
+              img: "/images/sub-categories/Entrance-Security-Solutions-sub-category/x-ray-baggage-scanner.avif",
+            },
+            {
+              name: "Dual Energy Baggage Scanner",
+              link: "/dual-energy-baggage-scanner.html",
+              img: "/images/sub-categories/Entrance-Security-Solutions-sub-category/x-ray-baggage-scanner.avif",
+            },
+            {
+              name: "Dual View Baggage Scanner",
+              link: "/dual-view-baggage-scanner.html",
+              img: "/images/sub-categories/Entrance-Security-Solutions-sub-category/x-ray-baggage-scanner.avif",
+            },
+            {
+              name: "Baggage Scanner Accessories",
+              link: "/baggage-scanner-accessories.html",
+              img: "/images/sub-categories/Entrance-Security-Solutions-sub-category/x-ray-baggage-scanner.avif",
+            },
+          ],
+        },
+        {
+          name: "Vehicle Surveillance System",
+          link: "/vehicle-surveillance-system.html",
+          subSub: [
+            {
+              name: "Fixed Type Under Vehicle Surveillance System",
+              link: "/fixed-type-under-vehicle-surveillance-system.html",
+              img: "/images/sub-categories/Entrance-Security-Solutions-sub-category/under-vehicle-scanner.avif",
+            },
+            {
+              name: "Portable Type Under Vehicle Surveillance System",
+              link: "/portable-type-under-vehicle-surveillance-system.html",
+              img: "/images/sub-categories/Entrance-Security-Solutions-sub-category/under-vehicle-scanner.avif",
+            },
+            {
+              name: "Under Vehicle Inspection System Accessories",
+              link: "/under-vehicle-inspection-system-accessories.html",
+              img: "/images/sub-categories/Entrance-Security-Solutions-sub-category/under-vehicle-scanner.avif",
+            },
+            {
+              name: "Under Vehicle Inspection Camera",
+              link: "/under-vehicle-inspection-camera.html",
+              img: "/images/sub-categories/Entrance-Security-Solutions-sub-category/under-vehicle-scanner.avif",
+            },
+            {
+              name: "Under Vehicle Inspection Mirror",
+              link: "/under-vehicle-inspection-mirror.html",
+              img: "/images/sub-categories/Entrance-Security-Solutions-sub-category/under-vehicle-scanner.avif",
+            },
+          ],
+        },
+        {
+          name: "Explosive Trace Detectors",
+          link: "/explosive-trace-detectors.html",
+          subSub: [
+            {
+              name: "Portable Explosive Drugs Detector",
+              link: "/portable-explosive-drugs-detector.html",
+              img: "/images/sub-categories/Entrance-Security-Solutions-sub-category/explosive-detector.avif",
+            },
+            {
+              name: "Portable Explosive Multi Gas Detector",
+              link: "/portable-explosive-multi-gas-detector.html",
+              img: "/images/sub-categories/Entrance-Security-Solutions-sub-category/explosive-detector.avif",
+            },
+            {
+              name: "Portable Explosive Liquid Detector",
+              link: "/portable-explosive-liquid-detector.html",
+              img: "/images/sub-categories/Entrance-Security-Solutions-sub-category/explosive-detector.avif",
+            },
+            {
+              name: "Portable Explosive Bomb Detector",
+              link: "/portable-explosive-bomb-detector.html",
+              img: "/images/sub-categories/Entrance-Security-Solutions-sub-category/explosive-detector.avif",
+            },
+          ],
+        },
+      ],
+    },
+
+    analytics: {
+      title: "Intelligent Video Analytics",
+      link: "/intelligent-video-analytics.html",
+      sub: [
+        {
+          name: "Face Recognition System",
+          link: "/face-recognition-system.html",
+          subSub: [
+            {
+              name: "Face Recognition Camera",
+              link: "/face-recognition-camera.html",
+              img: "/images/sub-sub-categories/intelligent-video-analytics/Face Recognition Camera.avif",
+            },
+            {
+              name: "Face Recognition Terminal",
+              link: "/face-recognition-terminal.html",
+              img: "/images/sub-sub-categories/intelligent-video-analytics/Face Recognition Terminal.avif",
+            },
+            {
+              name: "Face Recognition Software",
+              link: "/face-recognition-software.html",
+              img: "/images/sub-sub-categories/intelligent-video-analytics/Face Recognition Software.avif",
+            },
+          ],
+        },
+        {
+          name: "People Counting System",
+          link: "/people-counting-system.html",
+          subSub: [
+            {
+              name: "People Counting Camera",
+              link: "/people-counting-camera.html",
+              img: "/images/sub-sub-categories/intelligent-video-analytics/People Counting Camera.avif",
+            },
+            {
+              name: "Visitor Counting System",
+              link: "/visitor-counting-system.html",
+              img: "/images/sub-sub-categories/intelligent-video-analytics/Visitor Counting System.avif",
+            },
+            {
+              name: "Occupancy Monitoring System",
+              link: "/occupancy-monitoring-system.html",
+              img: "/images/sub-sub-categories/intelligent-video-analytics/Occupancy Monitoring System.avif",
+            },
+          ],
+        },
+        {
+          name: "Perimeter Intrusion Detection",
+          link: "/perimeter-intrusion-detection.html",
+          subSub: [
+            {
+              name: "Fence Intrusion Detection",
+              link: "/fence-intrusion-detection.html",
+              img: "/images/sub-sub-categories/intelligent-video-analytics/Fence Intrusion Detection.avif",
+            },
+            {
+              name: "Restricted Area Detection",
+              link: "/restricted-area-detection.html",
+              img: "/images/sub-sub-categories/intelligent-video-analytics/Restricted Area Detection.avif",
+            },
+            {
+              name: "AI Perimeter Camera",
+              link: "/ai-perimeter-camera.html",
+              img: "/images/sub-sub-categories/intelligent-video-analytics/AI Perimeter Camera.avif",
+            },
+          ],
+        },
+        {
+          name: "Line Crossing Detection",
+          link: "/line-crossing-detection.html",
+          subSub: [
+            {
+              name: "Virtual Line Crossing",
+              link: "/virtual-line-crossing.html",
+              img: "/images/sub-sub-categories/intelligent-video-analytics/Virtual Line Crossing.avif",
+            },
+            {
+              name: "Direction Detection",
+              link: "/direction-detection.html",
+              img: "/images/sub-sub-categories/intelligent-video-analytics/Direction Detection.avif",
+            },
+          ],
+        },
+        {
+          name: "Object Detection System",
+          link: "/object-detection-system.html",
+          subSub: [
+            {
+              name: "Abandoned Object Detection",
+              link: "/abandoned-object-detection.html",
+              img: "/images/sub-sub-categories/intelligent-video-analytics/Abandoned Object Detection.avif",
+            },
+            {
+              name: "Missing Object Detection",
+              link: "/missing-object-detection.html",
+              img: "/images/sub-sub-categories/intelligent-video-analytics/Missing Object Detection.avif",
+            },
+            {
+              name: "Suspicious Object Detection",
+              link: "/suspicious-object-detection.html",
+              img: "/images/sub-sub-categories/intelligent-video-analytics/Suspicious Object Detection.avif",
+            },
+          ],
+        },
+        {
+          name: "Vehicle Analytics System",
+          link: "/vehicle-analytics-system.html",
+          subSub: [
+            {
+              name: "Vehicle Detection System",
+              link: "/vehicle-detection-system.html",
+              img: "/images/sub-sub-categories/intelligent-video-analytics/Vehicle Detection System.avif",
+            },
+            {
+              name: "Vehicle Counting System",
+              link: "/vehicle-counting-system.html",
+              img: "/images/sub-sub-categories/intelligent-video-analytics/Vehicle Counting System.avif",
+            },
+            {
+              name: "Traffic Flow Analytics",
+              link: "/traffic-flow-analytics.html",
+              img: "/images/sub-sub-categories/intelligent-video-analytics/Traffic Flow Analytics.avif",
+            },
+          ],
+        },
+      ],
+    },
+
+    access: {
+      title: "Access Control & Time Attendance",
+      link: "/access-control-time-attendance.html",
+      sub: [
+        {
+          name: "Biometric Attendance System",
+          link: "/biometric-attendance-system.html",
+          subSub: [
+            {
+              name: "Fingerprint Attendance Device",
+              link: "/fingerprint-attendance-device.html",
+              img: "/images/sub-sub-categories/access-control/Fingerprint Attendance Device.avif",
+            },
+            {
+              name: "Face Attendance Device",
+              link: "/face-attendance-device.html",
+              img: "/images/sub-sub-categories/access-control/Face Attendance Device.avif",
+            },
+            {
+              name: "Card Attendance Device",
+              link: "/card-attendance-device.html",
+              img: "/images/sub-sub-categories/access-control/Card Attendance Device.avif",
+            },
+          ],
+        },
+        {
+          name: "Door Access Control System",
+          link: "/door-access-control-system.html",
+          subSub: [
+            {
+              name: "Single Door Access Control",
+              link: "/single-door-access-control.html",
+              img: "/images/sub-sub-categories/access-control/Single Door Access Control.avif",
+            },
+            {
+              name: "Multi Door Access Control",
+              link: "/multi-door-access-control.html",
+              img: "/images/sub-sub-categories/access-control/Multi Door Access Control.avif",
+            },
+            {
+              name: "Network Access Controller",
+              link: "/network-access-controller.html",
+              img: "/images/sub-sub-categories/access-control/Network Access Controller.avif",
+            },
+          ],
+        },
+        {
+          name: "Face Recognition Access Control",
+          link: "/face-recognition-access-control.html",
+          subSub: [
+            {
+              name: "Face Access Terminal",
+              link: "/face-access-terminal.html",
+              img: "/images/sub-sub-categories/access-control/Face Access Terminal.avif",
+            },
+            {
+              name: "Mask Detection Access Control",
+              link: "/mask-detection-access-control.html",
+              img: "/images/sub-sub-categories/access-control/Mask Detection Access Control.avif",
+            },
+            {
+              name: "Temperature Detection Terminal",
+              link: "/temperature-detection-terminal.html",
+              img: "/images/sub-sub-categories/access-control/Temperature Detection Terminal.avif",
+            },
+          ],
+        },
+        {
+          name: "RFID Card Access System",
+          link: "/rfid-card-access-system.html",
+          subSub: [
+            {
+              name: "RFID Card Reader",
+              link: "/rfid-card-reader.html",
+              img: "/images/sub-sub-categories/access-control/RFID Card Reader.avif",
+            },
+            {
+              name: "RFID Access Card",
+              link: "/rfid-access-card.html",
+              img: "/images/sub-sub-categories/access-control/RFID Access Card.avif",
+            },
+            {
+              name: "RFID Key Fob",
+              link: "/rfid-key-fob.html",
+              img: "/images/sub-sub-categories/access-control/RFID Key Fob.avif",
+            },
+          ],
+        },
+        {
+          name: "Electric Door Lock",
+          link: "/electric-door-lock.html",
+          subSub: [
+            {
+              name: "Magnetic Door Lock",
+              link: "/magnetic-door-lock.html",
+              img: "/images/sub-sub-categories/access-control/Magnetic Door Lock.avif",
+            },
+            {
+              name: "Electric Bolt Lock",
+              link: "/electric-bolt-lock.html",
+              img: "/images/sub-sub-categories/access-control/Electric Bolt Lock.avif",
+            },
+            {
+              name: "Door Exit Button",
+              link: "/door-exit-button.html",
+              img: "/images/sub-sub-categories/access-control/Door Exit Button.avif",
+            },
+          ],
+        },
+        {
+          name: "Attendance Management Software",
+          link: "/attendance-management-software.html",
+          subSub: [
+            {
+              name: "Employee Attendance Software",
+              link: "/employee-attendance-software.html",
+              img: "/images/sub-sub-categories/access-control/Employee Attendance Software.avif",
+            },
+            {
+              name: "Cloud Attendance Software",
+              link: "/cloud-attendance-software.html",
+              img: "/images/sub-sub-categories/access-control/Cloud Attendance Software.avif",
+            },
+          ],
+        },
+      ],
+    },
+
+    fire: {
+      title: "Fire Alarm System",
+      link: "/fire-alarm-system.html",
+      sub: [
+        {
+          name: "Conventional Fire Alarm System",
+          link: "/conventional-fire-alarm-system.html",
+          subSub: [
+            {
+              name: "Conventional Fire Alarm Panel",
+              link: "/conventional-fire-alarm-panel.html",
+              img: "/images/sub-sub-categories/fire-alarm/Conventional Fire Alarm Panel.avif",
+            },
+            {
+              name: "Conventional Smoke Detector",
+              link: "/conventional-smoke-detector.html",
+              img: "/images/sub-sub-categories/fire-alarm/Conventional Smoke Detector.avif",
+            },
+            {
+              name: "Conventional Heat Detector",
+              link: "/conventional-heat-detector.html",
+              img: "/images/sub-sub-categories/fire-alarm/Conventional Heat Detector.avif",
+            },
+          ],
+        },
+        {
+          name: "Addressable Fire Alarm System",
+          link: "/addressable-fire-alarm-system.html",
+          subSub: [
+            {
+              name: "Addressable Fire Alarm Panel",
+              link: "/addressable-fire-alarm-panel.html",
+              img: "/images/sub-sub-categories/fire-alarm/Addressable Fire Alarm Panel.avif",
+            },
+            {
+              name: "Addressable Smoke Detector",
+              link: "/addressable-smoke-detector.html",
+              img: "/images/sub-sub-categories/fire-alarm/Addressable Smoke Detector.avif",
+            },
+            {
+              name: "Addressable Heat Detector",
+              link: "/addressable-heat-detector.html",
+              img: "/images/sub-sub-categories/fire-alarm/Addressable Heat Detector.avif",
+            },
+          ],
+        },
+        {
+          name: "Fire Alarm Control Panel",
+          link: "/fire-alarm-control-panel.html",
+          subSub: [
+            {
+              name: "2 Zone Fire Alarm Panel",
+              link: "/2-zone-fire-alarm-panel.html",
+              img: "/images/sub-sub-categories/fire-alarm/2 Zone Fire Alarm Panel.avif",
+            },
+            {
+              name: "4 Zone Fire Alarm Panel",
+              link: "/4-zone-fire-alarm-panel.html",
+              img: "/images/sub-sub-categories/fire-alarm/4 Zone Fire Alarm Panel.avif",
+            },
+            {
+              name: "8 Zone Fire Alarm Panel",
+              link: "/8-zone-fire-alarm-panel.html",
+              img: "/images/sub-sub-categories/fire-alarm/8 Zone Fire Alarm Panel.avif",
+            },
+          ],
+        },
+        {
+          name: "Smoke Detector",
+          link: "/smoke-detector.html",
+          subSub: [
+            {
+              name: "Optical Smoke Detector",
+              link: "/optical-smoke-detector.html",
+              img: "/images/sub-sub-categories/fire-alarm/Optical Smoke Detector.avif",
+            },
+            {
+              name: "Photoelectric Smoke Detector",
+              link: "/photoelectric-smoke-detector.html",
+              img: "/images/sub-sub-categories/fire-alarm/Photoelectric Smoke Detector.avif",
+            },
+          ],
+        },
+        {
+          name: "Heat Detector",
+          link: "/heat-detector.html",
+          subSub: [
+            {
+              name: "Fixed Temperature Heat Detector",
+              link: "/fixed-temperature-heat-detector.html",
+              img: "/images/sub-sub-categories/fire-alarm/Fixed Temperature Heat Detector.avif",
+            },
+            {
+              name: "Rate of Rise Heat Detector",
+              link: "/rate-of-rise-heat-detector.html",
+              img: "/images/sub-sub-categories/fire-alarm/Rate of Rise Heat Detector.avif",
+            },
+          ],
+        },
+        {
+          name: "Manual Call Point",
+          link: "/manual-call-point.html",
+          subSub: [
+            {
+              name: "Break Glass Call Point",
+              link: "/break-glass-call-point.html",
+              img: "/images/sub-sub-categories/fire-alarm/Break Glass Call Point.avif",
+            },
+            {
+              name: "Resettable Call Point",
+              link: "/resettable-call-point.html",
+              img: "/images/sub-sub-categories/fire-alarm/Resettable Call Point.avif",
+            },
+          ],
+        },
+        {
+          name: "Fire Alarm Sounder & Strobe",
+          link: "/fire-alarm-sounder-strobe.html",
+          subSub: [
+            {
+              name: "Fire Alarm Sounder",
+              link: "/fire-alarm-sounder.html",
+              img: "/images/sub-sub-categories/fire-alarm/Fire Alarm Sounder.avif",
+            },
+            {
+              name: "Fire Alarm Strobe",
+              link: "/fire-alarm-strobe.html",
+              img: "/images/sub-sub-categories/fire-alarm/Fire Alarm Strobe.avif",
+            },
+          ],
+        },
+      ],
+    },
+    barrier: {
+      title: "Turnstile Gate & Boom Barrier",
+      link: "/turnstile-gate-boom-barrier.html",
+      sub: [
+        {
+          name: "Tripod Turnstile",
+          link: "/tripod-turnstile.html",
+          subSub: [
+            {
+              name: "Manual Tripod Turnstile",
+              link: "/manual-tripod-turnstile.html",
+              img: "/images/sub-sub-categories/Turnstile-Gate/Manual Tripod Turnstile.avif",
+            },
+            {
+              name: "Automatic Tripod Turnstile",
+              link: "/automatic-tripod-turnstile.html",
+              img: "/images/sub-sub-categories/Turnstile-Gate/Automatic Tripod Turnstile.avif",
+            },
+          ],
+        },
+        {
+          name: "Flap Barrier",
+          link: "/flap-barrier.html",
+          subSub: [
+            {
+              name: "Single Lane Flap Barrier",
+              link: "/single-lane-flap-barrier.html",
+              img: "/images/sub-sub-categories/Turnstile-Gate/Single Lane Flap Barrier.avif",
+            },
+            {
+              name: "Double Lane Flap Barrier",
+              link: "/double-lane-flap-barrier.html",
+              img: "/images/sub-sub-categories/Turnstile-Gate/flap_barrier_gate.avif",
+            },
+          ],
+        },
+        {
+          name: "Swing Barrier",
+          link: "/swing-barrier.html",
+          subSub: [
+            {
+              name: "Single Swing Barrier",
+              link: "/single-swing-barrier.html",
+              img: "/images/sub-sub-categories/Turnstile-Gate/Single Swing Barrier.avif",
+            },
+            {
+              name: "Double Swing Barrier",
+              link: "/double-swing-barrier.html",
+              img: "/images/sub-sub-categories/Turnstile-Gate/Double Swing Barrier.avif",
+            },
+          ],
+        },
+        {
+          name: "Full Height Turnstile",
+          link: "/full-height-turnstile.html",
+          subSub: [
+            {
+              name: "Single Full Height Turnstile",
+              link: "/single-full-height-turnstile.html",
+              img: "/images/sub-sub-categories/Turnstile-Gate/Single Full Height Turnstile.avif",
+            },
+            {
+              name: "Double Full Height Turnstile",
+              link: "/double-full-height-turnstile.html",
+              img: "/images/sub-sub-categories/Turnstile-Gate/Double Full Height Turnstile.avif",
+            },
+          ],
+        },
+        {
+          name: "Boom Barrier Gate",
+          link: "/boom-barrier-gate.html",
+          subSub: [
+            {
+              name: "Straight Arm Boom Barrier",
+              link: "/straight-arm-boom-barrier.html",
+              img: "/images/sub-sub-categories/Turnstile-Gate/Straight Arm Boom Barrier.avif",
+            },
+            {
+              name: "Folding Arm Boom Barrier",
+              link: "/folding-arm-boom-barrier.html",
+              img: "/images/sub-sub-categories/Turnstile-Gate/Folding Arm Boom Barrier.avif",
+            },
+          ],
+        },
+        {
+          name: "Parking Barrier",
+          link: "/parking-barrier.html",
+          subSub: [
+            {
+              name: "RFID Parking Barrier",
+              link: "/rfid-parking-barrier.html",
+              img: "/images/sub-sub-categories/Turnstile-Gate/RFID Parking Barrier.avif",
+            },
+            {
+              name: "ANPR Parking Barrier",
+              link: "/anpr-parking-barrier.html",
+              img: "/images/sub-sub-categories/Turnstile-Gate/ANPR Parking Barrier.avif",
+            },
+          ],
+        },
+        {
+          name: "Ticketing Gate System",
+          link: "/ticketing-gate-system.html",
+          subSub: [
+            {
+              name: "QR Ticketing Gate",
+              link: "/qr-ticketing-gate.html",
+              img: "/images/sub-sub-categories/Turnstile-Gate/QR Ticketing Gate.avif",
+            },
+            {
+              name: "RFID Ticketing Gate",
+              link: "/rfid-ticketing-gate.html",
+              img: "/images/sub-sub-categories/Turnstile-Gate/RFID Ticketing Gate.avif",
+            },
+          ],
+        },
+      ],
+    },
+
+    signage: {
+      title: "LCD/LED Digital Signage",
+      link: "/lcd-led-digital-signage.html",
+      sub: [
+        {
+          name: "Indoor LED Display",
+          link: "/indoor-led-display.html",
+          subSub: [
+            {
+              name: "P2 Indoor LED Display",
+              link: "/p2-indoor-led-display.html",
+              img: "/images/sub-sub-categories/lcd-led-digital-signage/p2-indoor-led-display.avif",
+            },
+            {
+              name: "P3 Indoor LED Display",
+              link: "/p3-indoor-led-display.html",
+              img: "/images/sub-sub-categories/lcd-led-digital-signage/p3-indoor-led-display.avif",
+            },
+          ],
+        },
+        {
+          name: "Outdoor LED Display",
+          link: "/outdoor-led-display.html",
+          subSub: [
+            {
+              name: "P4 Outdoor LED Display",
+              link: "/p4-outdoor-led-display.html",
+              img: "/images/sub-sub-categories/lcd-led-digital-signage/p4-outdoor-led-display.avif",
+            },
+            {
+              name: "P5 Outdoor LED Display",
+              link: "/p5-outdoor-led-display.html",
+              img: "/images/sub-sub-categories/lcd-led-digital-signage/p5-outdoor-led-display.avif",
+            },
+          ],
+        },
+        {
+          name: "Interactive Kiosk",
+          link: "/interactive-kiosk.html",
+          subSub: [
+            {
+              name: "Touch Kiosk",
+              link: "/touch-kiosk.html",
+              img: "/images/sub-sub-categories/lcd-led-digital-signage/touch-kiosk.avif",
+            },
+            {
+              name: "Self Service Kiosk",
+              link: "/self-service-kiosk.html",
+              img: "/images/sub-sub-categories/lcd-led-digital-signage/self-service-kiosk.avif",
+            },
+          ],
+        },
+        {
+          name: "Video Wall Display",
+          link: "/video-wall-display.html",
+          subSub: [
+            {
+              name: "LCD Video Wall",
+              link: "/lcd-video-wall.html",
+              img: "/images/sub-sub-categories/lcd-led-digital-signage/lcd-video-wall.avif",
+            },
+            {
+              name: "LED Video Wall",
+              link: "/led-video-wall.html",
+              img: "/images/sub-sub-categories/lcd-led-digital-signage/led-video-wall.avif",
+            },
+          ],
+        },
+        {
+          name: "Digital Signage Player",
+          link: "/digital-signage-player.html",
+          subSub: [
+            {
+              name: "Android Signage Player",
+              link: "/android-signage-player.html",
+              img: "/images/sub-sub-categories/lcd-led-digital-signage/android-signage-player.avif",
+            },
+            {
+              name: "Windows Signage Player",
+              link: "/windows-signage-player.html",
+              img: "/images/sub-sub-categories/lcd-led-digital-signage/windows-signage-player.avif",
+            },
+          ],
+        },
+        {
+          name: "Advertising Display",
+          link: "/advertising-display.html",
+          subSub: [
+            {
+              name: "Floor Standing Display",
+              link: "/floor-standing-display.html",
+              img: "/images/sub-sub-categories/lcd-led-digital-signage/floor-standing-display.avif",
+            },
+            {
+              name: "Wall Mounted Display",
+              link: "/wall-mounted-display.html",
+              img: "/images/sub-sub-categories/lcd-led-digital-signage/wall-mounted-display.avif",
+            },
+          ],
+        },
+      ],
+    },
+
+    queue: {
+      title: "Queue Management System",
+      link: "/queue-management-system.html",
+      sub: [
+        {
+          name: "Token Machine",
+          link: "/token-machine.html",
+          subSub: [
+            {
+              name: "Basic Token Machine",
+              link: "/basic-token-machine.html",
+              img: "/images/sub-sub-categories/queue_management_avif_images/Basic Token Machine.avif",
+            },
+            {
+              name: "Touch Token Machine",
+              link: "/touch-token-machine.html",
+              img: "/images/sub-sub-categories/queue_management_avif_images/Touch Token Machine.avif",
+            },
+            {
+              name: "Kiosk Token Machine",
+              link: "/kiosk-token-machine.html",
+              img: "/images/sub-sub-categories/queue_management_avif_images/Kiosk Token Machine.avif",
+            },
+          ],
+        },
+        {
+          name: "Queue Display",
+          link: "/queue-display.html",
+          subSub: [
+            {
+              name: "Counter Display",
+              link: "/counter-display.html",
+              img: "/images/sub-sub-categories/queue_management_avif_images/Counter Display.avif",
+            },
+            {
+              name: "Main Queue Display",
+              link: "/main-queue-display.html",
+              img: "/images/sub-sub-categories/queue_management_avif_images/Main Queue Display.avif",
+            },
+          ],
+        },
+        {
+          name: "Calling System",
+          link: "/calling-system.html",
+          subSub: [
+            {
+              name: "Wireless Calling System",
+              link: "/wireless-calling-system.html",
+              img: "/images/sub-sub-categories/queue_management_avif_images/Wireless Calling System.avif",
+            },
+            {
+              name: "Software Calling System",
+              link: "/software-calling-system.html",
+              img: "/images/sub-sub-categories/queue_management_avif_images/Software Calling System.avif",
+            },
+          ],
+        },
+        {
+          name: "Counter Display",
+          link: "/counter-display-system.html",
+          subSub: [
+            {
+              name: "LED Counter Display",
+              link: "/led-counter-display.html",
+              img: "/images/sub-sub-categories/queue_management_avif_images/LED Counter Display.avif",
+            },
+            {
+              name: "LCD Counter Display",
+              link: "/lcd-counter-display.html",
+              img: "/images/sub-sub-categories/queue_management_avif_images/LCD Counter Display.avif",
+            },
+          ],
+        },
+        {
+          name: "Queue Software",
+          link: "/queue-software.html",
+          subSub: [
+            {
+              name: "Cloud Queue Software",
+              link: "/cloud-queue-software.html",
+              img: "/images/sub-sub-categories/queue_management_avif_images/Cloud Queue Software.avif",
+            },
+            {
+              name: "Local Queue Software",
+              link: "/local-queue-software.html",
+              img: "/images/sub-sub-categories/queue_management_avif_images/Local Queue Software.avif",
+            },
+          ],
+        },
+        {
+          name: "Customer Feedback System",
+          link: "/customer-feedback-system.html",
+          subSub: [
+            {
+              name: "Feedback Kiosk",
+              link: "/feedback-kiosk.html",
+              img: "/images/sub-sub-categories/queue_management_avif_images/Feedback Kiosk.avif",
+            },
+            {
+              name: "Feedback Software",
+              link: "/feedback-software.html",
+              img: "/images/sub-sub-categories/queue_management_avif_images/Feedback Software.avif",
+            },
+          ],
+        },
+      ],
+    },
+
+    vehicle: {
+      title: "Vehicle Control System",
+      link: "/vehicle-control-system.html",
+      sub: [
+        {
+          name: "Parking Management System",
+          link: "/parking-management-system.html",
+          subSub: [
+            {
+              name: "Ticket Parking System",
+              link: "/ticket-parking-system.html",
+              img: "/images/sub-sub-categories/vehicle-control-system/Ticket Parking System.avif",
+            },
+            {
+              name: "RFID Parking System",
+              link: "/rfid-parking-system.html",
+              img: "/images/sub-sub-categories/vehicle-control-system/RFID Parking System.avif",
+            },
+            {
+              name: "ANPR Parking System",
+              link: "/anpr-parking-system.html",
+              img: "/images/sub-sub-categories/vehicle-control-system/ANPR Parking System.avif",
+            },
+          ],
+        },
+        {
+          name: "Car Parking Guidance",
+          link: "/car-parking-guidance.html",
+          subSub: [
+            {
+              name: "Indoor Parking Guidance",
+              link: "/indoor-parking-guidance.html",
+              img: "/images/sub-sub-categories/vehicle-control-system/Indoor Parking Guidance.avif",
+            },
+            {
+              name: "Outdoor Parking Guidance",
+              link: "/outdoor-parking-guidance.html",
+              img: "/images/sub-sub-categories/vehicle-control-system/Outdoor Parking Guidance.avif",
+            },
+          ],
+        },
+        {
+          name: "RFID Vehicle Access",
+          link: "/rfid-vehicle-access.html",
+          subSub: [
+            {
+              name: "RFID Long Range Reader",
+              link: "/rfid-long-range-reader.html",
+              img: "/images/sub-sub-categories/vehicle-control-system/RFID Long Range Reader.avif",
+            },
+            {
+              name: "RFID Vehicle Tag",
+              link: "/rfid-vehicle-tag.html",
+              img: "/images/sub-sub-categories/vehicle-control-system/RFID Vehicle Tag.avif",
+            },
+          ],
+        },
+        {
+          name: "ANPR Parking System",
+          link: "/anpr-parking-control.html",
+          subSub: [
+            {
+              name: "ANPR Entry System",
+              link: "/anpr-entry-system.html",
+              img: "/images/sub-sub-categories/vehicle-control-system/ANPR Entry System.avif",
+            },
+            {
+              name: "ANPR Exit System",
+              link: "/anpr-exit-system.html",
+              img: "/images/sub-sub-categories/vehicle-control-system/ANPR Exit System.avif",
+            },
+          ],
+        },
+        {
+          name: "Vehicle Loop Detector",
+          link: "/vehicle-loop-detector.html",
+          subSub: [
+            {
+              name: "Single Channel Loop Detector",
+              link: "/single-channel-loop-detector.html",
+              img: "/images/sub-sub-categories/vehicle-control-system/Single Channel Loop Detector.avif",
+            },
+            {
+              name: "Dual Channel Loop Detector",
+              link: "/dual-channel-loop-detector.html",
+              img: "/images/sub-sub-categories/vehicle-control-system/Dual Channel Loop Detector.avif",
+            },
+          ],
+        },
+        {
+          name: "Parking Payment Kiosk",
+          link: "/parking-payment-kiosk.html",
+          subSub: [
+            {
+              name: "Cash Payment Kiosk",
+              link: "/cash-payment-kiosk.html",
+              img: "/images/sub-sub-categories/vehicle-control-system/Cash Payment Kiosk.avif",
+            },
+            {
+              name: "Card Payment Kiosk",
+              link: "/card-payment-kiosk.html",
+              img: "/images/sub-sub-categories/vehicle-control-system/Card Payment Kiosk.avif",
+            },
+          ],
+        },
+      ],
+    },
+
+    conference: {
+      title: "Conference & PA System",
+      link: "/conference-pa-system.html",
+      sub: [
+        {
+          name: "Conference Microphone",
+          link: "/conference-microphone.html",
+          subSub: [
+            {
+              name: "Wired Conference Microphone",
+              link: "/wired-conference-microphone.html",
+              img: "/images/sub-sub-categories/conference-pa/Wired Conference Microphone.avif",
+            },
+            {
+              name: "Wireless Conference Microphone",
+              link: "/wireless-conference-microphone.html",
+              img: "/images/sub-sub-categories/conference-pa/Wireless Conference Microphone.avif",
+            },
+          ],
+        },
+        {
+          name: "PA Speaker System",
+          link: "/pa-speaker-system.html",
+          subSub: [
+            {
+              name: "Wall Mount PA Speaker",
+              link: "/wall-mount-pa-speaker.html",
+              img: "/images/sub-sub-categories/conference-pa/Wall Mount PA Speaker.avif",
+            },
+            {
+              name: "Ceiling PA Speaker",
+              link: "/ceiling-pa-speaker.html",
+              img: "/images/sub-sub-categories/conference-pa/Ceiling PA Speaker.avif",
+            },
+          ],
+        },
+        {
+          name: "Amplifier System",
+          link: "/amplifier-system.html",
+          subSub: [
+            {
+              name: "Mixer Amplifier",
+              link: "/mixer-amplifier.html",
+              img: "/images/sub-sub-categories/conference-pa/Mixer Amplifier.avif",
+            },
+            {
+              name: "Power Amplifier",
+              link: "/power-amplifier.html",
+              img: "/images/sub-sub-categories/conference-pa/Power Amplifier.avif",
+            },
+          ],
+        },
+        {
+          name: "Wireless Microphone",
+          link: "/wireless-microphone.html",
+          subSub: [
+            {
+              name: "Handheld Wireless Microphone",
+              link: "/handheld-wireless-microphone.html",
+              img: "/images/sub-sub-categories/conference-pa/Handheld Wireless Microphone.avif",
+            },
+            {
+              name: "Lapel Wireless Microphone",
+              link: "/lapel-wireless-microphone.html",
+              img: "/images/sub-sub-categories/conference-pa/Lapel Wireless Microphone.avif",
+            },
+          ],
+        },
+        {
+          name: "Meeting Room Audio",
+          link: "/meeting-room-audio.html",
+          subSub: [
+            {
+              name: "Small Meeting Room Audio",
+              link: "/small-meeting-room-audio.html",
+              img: "/images/sub-sub-categories/conference-pa/Small Meeting Room Audio.avif",
+            },
+            {
+              name: "Large Meeting Room Audio",
+              link: "/large-meeting-room-audio.html",
+              img: "/images/sub-sub-categories/conference-pa/Large Meeting Room Audio.avif",
+            },
+          ],
+        },
+        {
+          name: "Public Announcement System",
+          link: "/public-announcement-system.html",
+          subSub: [
+            {
+              name: "Zone PA System",
+              link: "/zone-pa-system.html",
+              img: "/images/sub-sub-categories/conference-pa/Zone PA System.avif",
+            },
+            {
+              name: "Emergency PA System",
+              link: "/emergency-pa-system.html",
+              img: "/images/sub-sub-categories/conference-pa/Emergency PA System.avif",
+            },
+          ],
+        },
+      ],
+    },
+
+    building: {
+      title: "Building Automation Solutions",
+      link: "/building-automation-solutions.html",
+      sub: [
+        {
+          name: "BMS System",
+          link: "/bms-system.html",
+          subSub: [
+            {
+              name: "BMS Controller",
+              link: "/bms-controller.html",
+              img: "/images/sub-sub-categories/building-automation/BMS Controller.avif",
+            },
+            {
+              name: "BMS Monitoring Software",
+              link: "/bms-monitoring-software.html",
+              img: "/images/sub-sub-categories/building-automation/BMS Monitoring Software.avif",
+            },
+          ],
+        },
+        {
+          name: "Lighting Control",
+          link: "/lighting-control.html",
+          subSub: [
+            {
+              name: "Dimming Control",
+              link: "/dimming-control.html",
+              img: "/images/sub-sub-categories/building-automation/Dimming Control.avif",
+            },
+            {
+              name: "Motion Lighting Control",
+              link: "/motion-lighting-control.html",
+              img: "/images/sub-sub-categories/building-automation/Motion Lighting Control.avif",
+            },
+          ],
+        },
+        {
+          name: "HVAC Control",
+          link: "/hvac-control.html",
+          subSub: [
+            {
+              name: "Thermostat Control",
+              link: "/thermostat-control.html",
+              img: "/images/sub-sub-categories/building-automation/Thermostat Control.avif",
+            },
+            {
+              name: "AHU Control",
+              link: "/ahu-control.html",
+              img: "/images/sub-sub-categories/building-automation/AHU Control.avif",
+            },
+          ],
+        },
+        {
+          name: "Energy Management",
+          link: "/energy-management.html",
+          subSub: [
+            {
+              name: "Energy Meter",
+              link: "/energy-meter.html",
+              img: "/images/sub-sub-categories/building-automation/Energy Meter.avif",
+            },
+            {
+              name: "Energy Monitoring Software",
+              link: "/energy-monitoring-software.html",
+              img: "/images/sub-sub-categories/building-automation/Energy Monitoring Software.avif",
+            },
+          ],
+        },
+        {
+          name: "Smart Building Control",
+          link: "/smart-building-control.html",
+          subSub: [
+            {
+              name: "Smart Building Controller",
+              link: "/smart-building-controller.html",
+              img: "/images/sub-sub-categories/building-automation/Smart Building Controller.avif",
+            },
+            {
+              name: "Smart Building Dashboard",
+              link: "/smart-building-dashboard.html",
+              img: "/images/sub-sub-categories/building-automation/Smart Building Dashboard.avif",
+            },
+          ],
+        },
+        {
+          name: "Central Monitoring System",
+          link: "/central-monitoring-system.html",
+          subSub: [
+            {
+              name: "Central Monitoring Software",
+              link: "/central-monitoring-software.html",
+              img: "/images/sub-sub-categories/building-automation/Central Monitoring Software.avif",
+            },
+            {
+              name: "Monitoring Workstation",
+              link: "/monitoring-workstation.html",
+              img: "/images/sub-sub-categories/building-automation/Monitoring Workstation.avif",
+            },
+          ],
+        },
+      ],
+    },
+    smart: {
+      title: "Smart Home Solutions",
+      link: "/smart-home-solutions.html",
+      sub: [
+        {
+          name: "Smart Door Lock",
+          link: "/smart-door-lock.html",
+          subSub: [
+            {
+              name: "Fingerprint Smart Lock",
+              link: "/fingerprint-smart-lock.html",
+              img: "/images/sub-sub-categories/smart-home/Fingerprint Smart Lock.avif",
+            },
+            {
+              name: "WiFi Smart Lock",
+              link: "/wifi-smart-lock.html",
+              img: "/images/sub-sub-categories/smart-home/WiFi Smart Lock.avif",
+            },
+            {
+              name: "Card Smart Lock",
+              link: "/card-smart-lock.html",
+              img: "/images/sub-sub-categories/smart-home/Card Smart Lock.avif",
+            },
+          ],
+        },
+        {
+          name: "Smart Switch",
+          link: "/smart-switch.html",
+          subSub: [
+            {
+              name: "One Gang Smart Switch",
+              link: "/one-gang-smart-switch.html",
+              img: "/images/sub-sub-categories/smart-home/One Gang Smart Switch.avif",
+            },
+            {
+              name: "Two Gang Smart Switch",
+              link: "/two-gang-smart-switch.html",
+              img: "/images/sub-sub-categories/smart-home/Two Gang Smart Switch.avif",
+            },
+            {
+              name: "Three Gang Smart Switch",
+              link: "/three-gang-smart-switch.html",
+              img: "/images/sub-sub-categories/smart-home/Three Gang Smart Switch.avif",
+            },
+          ],
+        },
+        {
+          name: "Smart Curtain",
+          link: "/smart-curtain.html",
+          subSub: [
+            {
+              name: "Smart Curtain Motor",
+              link: "/smart-curtain-motor.html",
+              img: "/images/sub-sub-categories/smart-home/Smart Curtain Motor.avif",
+            },
+            {
+              name: "Smart Curtain Track",
+              link: "/smart-curtain-track.html",
+              img: "/images/sub-sub-categories/smart-home/Smart Curtain Track.avif",
+            },
+          ],
+        },
+        {
+          name: "Smart Lighting",
+          link: "/smart-lighting.html",
+          subSub: [
+            {
+              name: "Smart LED Bulb",
+              link: "/smart-led-bulb.html",
+              img: "/images/sub-sub-categories/smart-home/Smart LED Bulb.avif",
+            },
+            {
+              name: "Smart Strip Light",
+              link: "/smart-strip-light.html",
+              img: "/images/sub-sub-categories/smart-home/Smart Strip Light.avif",
+            },
+          ],
+        },
+        {
+          name: "Smart Security Sensor",
+          link: "/smart-security-sensor.html",
+          subSub: [
+            {
+              name: "Smart Motion Sensor",
+              link: "/smart-motion-sensor.html",
+              img: "/images/sub-sub-categories/smart-home/Smart Motion Sensor.avif",
+            },
+            {
+              name: "Smart Door Sensor",
+              link: "/smart-door-sensor.html",
+              img: "/images/sub-sub-categories/smart-home/Smart Door Sensor.avif",
+            },
+          ],
+        },
+        {
+          name: "Home Automation Hub",
+          link: "/home-automation-hub.html",
+          subSub: [
+            {
+              name: "WiFi Automation Hub",
+              link: "/wifi-automation-hub.html",
+              img: "/images/sub-sub-categories/smart-home/WiFi Automation Hub.avif",
+            },
+            {
+              name: "Zigbee Automation Hub",
+              link: "/zigbee-automation-hub.html",
+              img: "/images/sub-sub-categories/smart-home/Zigbee Automation Hub.avif",
+            },
+          ],
+        },
+      ],
+    },
+  };
+
+  function getSubName(subItem) {
+    return subItem.name;
+  }
+
+  function getSubLink(subItem) {
+    return subItem.link;
+  }
+
+  function renderSubSubCategories(categoryKey, subItem) {
+    const subName = getSubName(subItem);
+    const subLink = getSubLink(subItem);
+    const subSubItems = Array.isArray(subItem.subSub) ? subItem.subSub : [];
+
+    previewTitle.textContent = subName;
+
+    if (!subSubItems.length) {
+      previewList.innerHTML = `
+        <a href="${subLink}" class="flex items-center gap-5 border-b border-[#e6edf5] pb-4 group/product">
+          <div class="w-[95px] h-[95px] rounded-xl bg-[#f5f8fc] overflow-hidden shrink-0 flex items-center justify-center text-3xl">
+            ›
+          </div>
+
+          <div>
+            <h4 class="text-[17px] font-bold text-[#071425] group-hover/product:text-[#0057d8]">
+              View All ${subName}
+            </h4>
+            <p class="mt-1 text-[14px] leading-6 font-medium text-[#4b5565]">
+              Open this sub category page and view all products.
+            </p>
+          </div>
+        </a>
+      `;
+    } else {
+      previewList.innerHTML = subSubItems
+        .map(function (item) {
+          return `
+            <a href="${item.link}" class="flex items-center gap-5 border-b border-[#e6edf5] pb-4 group/product">
+          <div class="w-[96px] h-[96px] rounded-xl bg-[#f5f8fc] overflow-hidden shrink-0 flex items-center justify-center">
+  <img
+    src="${item.img}"
+    alt="${item.name}"
+    class="w-full h-full object-contain p-1"
+    style="transform: scale(1.35); transform-origin: center;"
+    onerror="this.onerror=null; this.remove();"
+  />
+</div>
+
+              <div>
+                <h4 class="text-[17px] font-bold text-[#071425] group-hover/product:text-[#0057d8]">
+                  ${item.name}
+                </h4>
+                <p class="mt-1 text-[14px] leading-6 font-medium text-[#4b5565]">
+                  View products under ${item.name}.
+                </p>
+              </div>
+            </a>
+          `;
+        })
+        .join("");
+    }
+
+    viewAll.href = subLink;
+    viewAll.querySelector("span").textContent = `View All ${subName}`;
+  }
+
+  function renderCategory(categoryKey) {
+    const current = data[categoryKey];
+
+    if (!current) return;
+
+    const productMegaDesktopMedia = window.matchMedia("(min-width: 1024px)");
+
+    title.textContent = current.title;
+
+    subList.innerHTML = current.sub
+      .map(function (subItem, index) {
+        const subName = getSubName(subItem);
+        const subLink = getSubLink(subItem);
+
+        return `
+        <a
+          href="${subLink}"
+          data-product-sub-index="${index}"
+          class="product-mega-sub-link flex min-h-[43px] items-center justify-between rounded-lg px-4 text-[14px] font-semibold transition-colors ${
+            index === 0
+              ? "bg-[#eef7ff] text-[#0057d8]"
+              : "text-[#071425] hover:bg-[#eef7ff] hover:text-[#0057d8]"
+          }"
+        >
+          ${subName}
+          <span class="text-xl">›</span>
+        </a>
+      `;
+      })
+      .join("");
+
+    // =========================================
+    // ACTIVE CATEGORY
+    // =========================================
+    tabs.forEach(function (tab) {
+      const isActive =
+        tab.getAttribute("data-product-mega-tab") === categoryKey;
+
+      tab.classList.toggle("bg-[#eef7ff]", isActive);
+
+      tab.classList.toggle("text-[#0057d8]", isActive);
+
+      tab.classList.toggle("border-l-2", isActive);
+
+      tab.classList.toggle("border-l-[#0057d8]", isActive);
+
+      if (!isActive) {
+        tab.classList.remove(
+          "bg-[#eef7ff]",
+          "text-[#0057d8]",
+          "border-l-2",
+          "border-l-[#0057d8]",
+        );
+
+        tab.classList.add("text-[#071425]");
+      }
+    });
+
+    const subLinks = subList.querySelectorAll("[data-product-sub-index]");
+
+    // =========================================
+    // CHANGE SUB CATEGORY
+    // =========================================
+    function activateSubCategory(subLink) {
+      const index = Number(subLink.getAttribute("data-product-sub-index"));
+
+      const subItem = current.sub[index];
+
+      if (!subItem) return;
+
+      subLinks.forEach(function (link) {
+        link.classList.remove("bg-[#eef7ff]", "text-[#0057d8]");
+
+        link.classList.add("text-[#071425]");
+      });
+
+      subLink.classList.add("bg-[#eef7ff]", "text-[#0057d8]");
+
+      subLink.classList.remove("text-[#071425]");
+
+      renderSubSubCategories(categoryKey, subItem);
+
+      // The third desktop column becomes a nested preview directly beneath
+      // the tapped subcategory on mobile (no extra scroll to the menu bottom).
+      if (!productMegaDesktopMedia.matches && previewColumn) {
+        subLink.insertAdjacentElement("afterend", previewColumn);
+        previewColumn.style.display = "";
+      }
+    }
+
+    subLinks.forEach(function (subLink) {
+      // =======================================
+      // DESKTOP
+      // hover করলে preview change
+      // =======================================
+      subLink.addEventListener("mouseenter", function () {
+        if (!productMegaDesktopMedia.matches) {
+          return;
+        }
+
+        activateSubCategory(subLink);
+      });
+
+      // =======================================
+      // MOBILE
+      // click করলে preview change
+      // page change হবে না
+      // =======================================
+      subLink.addEventListener("click", function (event) {
+        if (productMegaDesktopMedia.matches) {
+          return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        activateSubCategory(subLink);
+      });
+    });
+
+    // প্রথম subcategory default
+    if (current.sub.length) {
+      renderSubSubCategories(categoryKey, current.sub[0]);
+    }
+  }
+
+  const productMegaDesktopMedia = window.matchMedia("(min-width: 1024px)");
+
+  tabs.forEach(function (tab) {
+    // =========================================
+    // DESKTOP HOVER
+    // =========================================
+    tab.addEventListener("mouseenter", function () {
+      if (!productMegaDesktopMedia.matches) {
+        return;
+      }
+
+      const categoryKey = tab.getAttribute("data-product-mega-tab");
+
+      renderCategory(categoryKey);
+    });
+
+    // =========================================
+    // CLICK
+    // =========================================
+    tab.addEventListener("click", function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const categoryKey = tab.getAttribute("data-product-mega-tab");
+
+      const current = data[categoryKey];
+
+      // =====================================
+      // MOBILE
+      // শুধু category change করবে
+      // page redirect করবে না
+      // =====================================
+      if (!productMegaDesktopMedia.matches) {
+        // Reattaching before re-rendering prevents the preview from being
+        // destroyed when the subcategory list's innerHTML is refreshed.
+        movePreviewBack();
+
+        if (openMobileCategory === categoryKey && subColumn.style.display !== "none") {
+          subColumn.style.display = "none";
+          previewColumn.style.display = "none";
+          openMobileCategory = null;
+          tab.setAttribute("aria-expanded", "false");
+        } else {
+          renderCategory(categoryKey);
+          moveMobileCategoryUnderTab(tab);
+        }
+        return;
+      }
+
+      // =====================================
+      // DESKTOP
+      // click করলে category page
+      // =====================================
+      if (current && current.link) {
+        window.location.href = current.link;
+      }
+    });
+  });
+
+  renderCategory("cctv");
+  syncMobileProductColumns();
+  desktopBreakpoint.addEventListener("change", syncMobileProductColumns);
+}
+
+function initCategoryProductFilter() {
+  const filterButtons = document.querySelectorAll("[data-product-filter]");
+  const productCards = Array.from(
+    document.querySelectorAll("[data-product-card]"),
+  );
+  const sortSelect = document.getElementById("productSort");
+  const productGrid = document.getElementById("productGrid");
+
+  if (!filterButtons.length || !productCards.length || !productGrid) return;
+
+  let currentFilter = "all";
+
+  function setActiveButton(filterValue) {
+    filterButtons.forEach(function (button) {
+      const isActive =
+        button.getAttribute("data-product-filter") === filterValue;
+
+      button.classList.toggle("active", isActive);
+      button.classList.toggle("bg-[#0057d8]", isActive);
+      button.classList.toggle("text-white", isActive);
+      button.classList.toggle(
+        "shadow-[0_8px_20px_rgba(0,87,216,0.22)]",
+        isActive,
+      );
+
+      if (!isActive) {
+        button.classList.remove(
+          "bg-[#0057d8]",
+          "text-white",
+          "shadow-[0_8px_20px_rgba(0,87,216,0.22)]",
+        );
+      }
+    });
+  }
+
+  function filterProducts(filterValue) {
+    currentFilter = filterValue;
+
+    productCards.forEach(function (card) {
+      const categories = card.getAttribute("data-category") || "";
+      const shouldShow =
+        filterValue === "all" || categories.includes(filterValue);
+
+      card.classList.toggle("hidden", !shouldShow);
+    });
+
+    setActiveButton(filterValue);
+  }
+
+  function sortProducts() {
+    if (!sortSelect) return;
+
+    const sortValue = sortSelect.value;
+    const cards = Array.from(productCards);
+
+    cards.sort(function (a, b) {
+      if (sortValue === "name") {
+        return (a.getAttribute("data-name") || "").localeCompare(
+          b.getAttribute("data-name") || "",
+        );
+      }
+
+      if (sortValue === "new") {
+        return (
+          Number(b.getAttribute("data-sort")) -
+          Number(a.getAttribute("data-sort"))
+        );
+      }
+
+      return (
+        Number(a.getAttribute("data-sort")) -
+        Number(b.getAttribute("data-sort"))
+      );
+    });
+
+    cards.forEach(function (card) {
+      productGrid.appendChild(card);
+    });
+
+    filterProducts(currentFilter);
+  }
+
+  filterButtons.forEach(function (button) {
+    button.addEventListener("click", function () {
+      const filterValue = button.getAttribute("data-product-filter");
+
+      filterProducts(filterValue);
+    });
+  });
+
+  if (sortSelect) {
+    sortSelect.addEventListener("change", sortProducts);
+  }
+
+  filterProducts("all");
+}
+document.addEventListener("DOMContentLoaded", loadComponents);

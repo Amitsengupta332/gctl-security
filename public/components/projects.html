@@ -1,0 +1,209 @@
+<section class="bg-white" data-projects-page>
+  <!-- Breadcrumb -->
+  <!-- <div class="border-b border-[#eef3fa] bg-white">
+    <div class="mx-auto max-w-[1320px] px-4 py-5">
+      <div class="flex items-center gap-3 text-[13px] font-normal text-[#667993]">
+        <a href="/index.html" class="transition hover:text-[#0068d9]">Home</a>
+        <span class="text-[#b4c0cf]">›</span>
+        <span class="text-[#071f4d]">Projects</span>
+      </div>
+    </div>
+  </div> -->
+
+  <!-- Hero -->
+  <!-- Hero -->
+  <div class="relative overflow-hidden border-b border-[#e7eef7] bg-[#f5f9ff]">
+    <picture class="absolute inset-0 h-full w-full">
+      <source
+        media="(max-width: 767px)"
+        srcset="/images/projects-mobile-hero.avif"
+      />
+
+      <img
+        src="/images/project-page-hero-banner-1600x420-v2.avif"
+        alt="GCTL Projects"
+        class="h-full w-full object-cover object-center"
+      />
+    </picture>
+
+    <button
+      type="button"
+      data-hero-video-open
+      data-youtube-video-id="YOUR_PROJECT_YOUTUBE_VIDEO_ID"
+      class="group absolute bottom-8 right-5 z-20 flex h-[58px] w-[58px] items-center justify-center border-0 bg-transparent p-0 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ff0033] md:bottom-auto md:right-[22%] md:top-1/2 md:-translate-y-1/2"
+      aria-label="Play projects video"
+    >
+      <svg
+        class="h-[40px] w-[54px] transition-transform duration-200 group-hover:scale-110"
+        viewBox="0 0 68 48"
+        fill="none"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <rect x="1.5" y="3" width="65" height="42" rx="13" fill="#FF0033" />
+        <path d="M27 14.5L46 24L27 33.5V14.5Z" fill="white" />
+      </svg>
+    </button>
+
+    <div class="relative mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-4">
+      <div
+        class="flex min-h-[310px] items-center py-8 sm:min-h-[292px] md:min-h-[310px] md:py-10"
+      >
+        <div class="max-w-[610px]">
+          <div
+            class="mb-4 flex items-center gap-3 text-[12px] font-normal text-[#5d6d82] sm:text-[13px]"
+          >
+            <a href="/index.html" class="hover:text-[#0068d9]">Home</a>
+            <span class="text-[#a8b4c3]">›</span>
+            <span class="text-[#071f4d]">Projects</span>
+          </div>
+
+          <span
+            class="text-[12px] font-normal uppercase tracking-[0.12em] text-[#0068d9] sm:text-[13px]"
+          >
+            Our Projects
+          </span>
+
+          <h1
+            class="mt-4 text-[30px] font-medium leading-[1.18] tracking-[-0.6px] text-[#071f4d] sm:text-[36px] md:text-[42px] md:tracking-[-0.8px]"
+          >
+            Delivering Smart Security<br class="hidden md:block" />
+            Solutions That Make a Difference
+          </h1>
+
+          <p
+            class="mt-5 max-w-[560px] text-[13px] font-normal leading-6 text-[#334860] sm:text-[14px] md:text-[15px] md:leading-7"
+          >
+            Explore a selection of our successfully completed projects across
+            various industries. Each project reflects our commitment to quality,
+            innovation, and customer satisfaction.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Projects Content -->
+  <div class="mx-auto max-w-[1320px] px-4 py-10">
+    <!-- Filter Bar -->
+    <div
+      class="rounded-[14px] border border-[#dfe8f4] bg-white p-4 shadow-[0_10px_28px_rgba(15,23,42,0.06)]"
+    >
+      <div data-project-filters class="flex flex-wrap items-center gap-3"></div>
+    </div>
+
+    <!-- Project Grid -->
+    <div
+      id="projectList"
+      data-project-list
+      class="mt-8 grid gap-7 md:grid-cols-2 xl:grid-cols-3"
+    ></div>
+
+    <!-- Empty State -->
+    <div
+      data-project-empty
+      class="mt-8 hidden rounded-[14px] border border-[#dfe8f4] bg-[#f8fbff] p-10 text-center"
+    >
+      <h3 class="text-[20px] font-medium text-[#071f4d]">No projects found</h3>
+      <p class="mt-2 text-[14px] font-normal text-[#53677f]">
+        Try another category filter.
+      </p>
+    </div>
+
+    <!-- CTA -->
+    <div
+      class="mt-10 overflow-hidden rounded-[14px] border border-[#dfe8f4] bg-gradient-to-r from-[#f8fbff] via-white to-[#eef7ff] p-7 shadow-[0_10px_28px_rgba(15,23,42,0.055)]"
+    >
+      <div
+        class="flex flex-col gap-6 md:flex-row md:items-center md:justify-between"
+      >
+        <div class="flex items-center gap-6">
+          <div
+            class="flex h-[80px] w-[80px] shrink-0 items-center justify-center rounded-full bg-[#0068d9] text-white shadow-[0_14px_24px_rgba(0,104,217,0.25)]"
+          >
+            <svg
+              class="h-10 w-10"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M9 12h6"></path>
+              <path d="M9 16h6"></path>
+              <path d="M10 4h4"></path>
+              <path d="M6 8h12v13H6z"></path>
+              <path d="M8 4h8v4H8z"></path>
+            </svg>
+          </div>
+
+          <div>
+            <h2
+              class="text-[26px] font-medium tracking-[-0.5px] text-[#071f4d]"
+            >
+              Have a Project in Mind?
+            </h2>
+            <p
+              class="mt-2 max-w-[470px] text-[14px] font-normal leading-6 text-[#40516a]"
+            >
+              Let’s work together to build a smarter, safer and more secure
+              tomorrow.
+            </p>
+          </div>
+        </div>
+
+        <a
+          href="/contact.html"
+          class="inline-flex h-[52px] items-center justify-center gap-3 rounded-[7px] bg-[#0068d9] px-8 text-[15px] font-medium text-white shadow-[0_12px_24px_rgba(0,104,217,0.22)] transition hover:bg-[#0058bb]"
+        >
+          Contact Our Experts
+          <span class="text-xl">→</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- HERO VIDEO MODAL -->
+  <div
+    data-hero-video-modal
+    class="fixed inset-0 z-[9999] hidden items-center justify-center bg-[#071f4d]/80 p-4 backdrop-blur-[4px]"
+  >
+    <div
+      class="relative w-full max-w-[920px] overflow-hidden rounded-[18px] bg-black shadow-[0_30px_90px_rgba(0,0,0,0.35)]"
+    >
+      <button
+        type="button"
+        data-hero-video-close
+        class="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white text-[18px] font-normal text-[#071f4d] shadow-[0_8px_20px_rgba(0,0,0,0.20)] transition hover:bg-[#0068d9] hover:text-white"
+        aria-label="Close video"
+      >
+        ✕
+      </button>
+
+      <div class="aspect-video w-full">
+        <iframe
+          data-hero-video-frame
+          class="h-full w-full"
+          src=""
+          title="Projects video"
+          allow="autoplay; encrypted-media; picture-in-picture"
+          allowfullscreen
+        ></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Details Modal -->
+  <!-- <div data-project-modal
+    class="fixed inset-0 z-[999] hidden items-center justify-center bg-[#071f4d]/70 p-4 backdrop-blur-[3px]">
+    <div data-project-modal-panel
+      class="relative max-h-[92vh] w-full max-w-[980px] overflow-hidden rounded-[18px] bg-white shadow-[0_30px_90px_rgba(0,0,0,0.35)]">
+      <button type="button" data-project-modal-close
+        class="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#071f4d] shadow-[0_8px_22px_rgba(15,23,42,0.18)] transition hover:bg-[#0068d9] hover:text-white"
+        aria-label="Close project details">
+        ✕
+      </button>
+
+      <div data-project-modal-content></div>
+    </div>
+  </div> -->
+</section>

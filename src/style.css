@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+@source "../index.html";
+@source "../contact.html";
+@source "../projects.html";
+@source "../**/*.html";
+@source "./**/*.{js,css}";
+
+/* Product slider scrollbar hide */
+/* [data-product-track] {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-behavior: smooth;
+  touch-action: pan-x;
+}
+
+[data-product-track]::-webkit-scrollbar {
+  display: none;
+} */
+
+.hero-slider-dot {
+  display: block;
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 9999px;
+  background-color: rgba(0, 104, 201, 0.3);
+  cursor: pointer;
+  transition:
+    width 300ms ease,
+    background-color 300ms ease;
+}
+
+.hero-slider-dot:hover {
+  background-color: rgba(0, 104, 201, 0.6);
+}
+
+.hero-slider-dot-active {
+  width: 32px;
+  background-color: #0068c9;
+}
+
+/* =============================================================
+   RESPONSIVE HERO + PRODUCT NAV (mobile only)
+   Desktop design, existing links and video modal remain unchanged.
+============================================================= */
+@media (max-width: 767px) {
+  /* Homepage: position slide copy in the free upper area of its 720px hero,
+     instead of vertically centering it midway down the phone viewport. */
+  #heroSlider .swiper-slide > .relative.z-10 {
+    align-items: flex-start;
+    padding-top: 24px;
+  }
+
+  #heroSlider .swiper-slide > .relative.z-10 > div {
+    padding-top: 0;
+  }
+
+  /* About, Contact, Projects: start content at the top on small screens. */
+  section > div.relative.overflow-hidden > div.relative.mx-auto > div.flex {
+    align-items: flex-start;
+    padding-top: 22px;
+  }
+
+  /* Shared category banners follow the same text-first mobile layout. */
+  main[data-page-type] > div.relative.overflow-hidden > div.relative.z-10 > div.flex,
+  main[data-page-type] div.relative.overflow-hidden > div.relative.z-10 > div.flex,
+  section > div.relative.overflow-hidden > div.relative.z-10 > div.flex {
+    align-items: flex-start;
+    padding-top: 24px;
+  }
+}
+
+@media (max-width: 1023px) {
+  /* All five YouTube-enabled banner templates: put the icon in the unused
+     upper-right area. Keep the video trigger and desktop placement intact. */
+  [data-hero-video-open] {
+    top: 10px !important;
+    right: 12px !important;
+    bottom: auto !important;
+    transform: none !important;
+  }
+
+  /* The existing mega-menu columns are nested after the tapped category.
+     No duplicate menu and no change to desktop hover behavior. */
+  [data-mobile-sub-column] {
+    padding: 10px 12px 14px !important;
+    border-bottom: 1px solid #dce8f7;
+    background: #f7fbff;
+  }
+
+  [data-mobile-sub-column] > h3 { margin-bottom: 8px; font-size: 14px; }
+  [data-mobile-sub-column] #productMegaSubList { padding-right: 0; }
+  [data-mobile-sub-column] .product-mega-sub-link { min-height: 42px; font-size: 13px; }
+
+  [data-mobile-preview-column] {
+    margin: 4px 0 10px;
+    padding: 12px !important;
+    border: 1px solid #dce8f7;
+    border-radius: 10px;
+    background: white;
+  }
+  [data-mobile-preview-column] > h3 { margin-bottom: 12px; font-size: 14px; }
+  [data-mobile-preview-column] #productMegaPreviewList a { gap: 10px; padding-bottom: 10px; }
+  [data-mobile-preview-column] #productMegaPreviewList img { max-width: 72px; }
+  [data-mobile-preview-column] #productMegaPreviewList h4 { font-size: 13px; }
+  [data-mobile-preview-column] #productMegaPreviewList p { font-size: 12px; line-height: 1.4; }
+  [data-mobile-preview-column] #productMegaViewAll { margin-top: 12px; }
+}
