@@ -9,16 +9,19 @@ import { readdirSync } from "fs";
  */
 function getRootHtmlInputs() {
   const root = process.cwd();
-
-  return readdirSync(root)
-    .filter((file) => file.endsWith(".html"))
-    .reduce((inputs, file) => {
-      const name = file.replace(".html", "");
-
-      inputs[name] = resolve(root, file);
-
-      return inputs;
-    }, {});
+  const inputs = {};
+  for (const file of readdirSync(root).filter((file) => file.endsWith(".html"))) {
+    inputs[file.replace(/\.html$/, "")] = resolve(root, file);
+  }
+  // Include physical blog routes in the production bundle, not just Vite dev.
+  // This makes /blog/article-slug/ open directly on static hosting.
+  inputs["blog-index"] = resolve(root, "blog/index.html");
+  for (const dir of readdirSync(resolve(root, "blog"), { withFileTypes: true })) {
+    if (dir.isDirectory()) {
+      inputs[`blog-${dir.name}`] = resolve(root, "blog", dir.name, "index.html");
+    }
+  }
+  return inputs;
 }
 
 /**

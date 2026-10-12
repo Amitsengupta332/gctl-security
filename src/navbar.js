@@ -62,7 +62,7 @@ function isProductsRoute(currentPath) {
    * normal nav pages বাদে .html route-কে
    * Products tree হিসেবে ধরছি।
    */
-  if (currentPath.endsWith(".html") && !normalNavPaths.includes(currentPath)) {
+  if (currentPath.endsWith(".html") && !normalNavPaths.includes(currentPath) && currentPath !== "/blog-details.html") {
     return true;
   }
 
@@ -74,6 +74,7 @@ function isActiveNavItem(item, currentPath) {
     return isProductsRoute(currentPath);
   }
 
+  if (normalizePath(item.href) === "/blog/" && (currentPath === "/blog.html" || currentPath === "/blog-details.html" || currentPath.startsWith("/blog/"))) return true;
   return normalizePath(item.href) === currentPath;
 }
 

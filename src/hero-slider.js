@@ -1,7 +1,9 @@
 import Swiper from "swiper";
 import {
   A11y,
+  Autoplay,
   EffectFade,
+  Keyboard,
   Navigation,
   Pagination,
 } from "swiper/modules";
@@ -22,18 +24,36 @@ export function initHeroSlider() {
     "[data-hero-pagination]",
   );
 
+  const reducedMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+  ).matches;
+
+  // Keep the existing seven banners, links, colors and layout as they are.
   const swiper = new Swiper(sliderElement, {
     modules: [
       Navigation,
       Pagination,
+      Autoplay,
       EffectFade,
+      Keyboard,
       A11y,
     ],
 
     slidesPerView: 1,
     slidesPerGroup: 1,
 
-    speed: 700,
+    // CLS-style auto-rotation without changing any GCTL slide design/colors.
+    // Honor the visitor's reduced-motion preference.
+    speed: reducedMotion ? 0 : 700,
+
+    autoplay: reducedMotion
+      ? false
+      : {
+          delay: 5500,
+          disableOnInteraction: false,
+          pauseOnMouseEnter: true,
+          waitForTransition: true,
+        },
 
     effect: "fade",
 
@@ -43,8 +63,15 @@ export function initHeroSlider() {
 
     rewind: true,
 
-    // Hero area-তে grab/pointer cursor থাকবে না
+    // Touch-swipe on phones, no drag cursor on desktop.
+    allowTouchMove: true,
     grabCursor: false,
+
+    // Arrow keys work when the carousel is in view (Swiper's Keyboard module).
+    keyboard: {
+      enabled: true,
+      onlyInViewport: true,
+    },
 
     watchOverflow: true,
 
@@ -82,6 +109,20 @@ export function initHeroSlider() {
       paginationBulletMessage: "Go to hero slide {{index}}",
     },
   });
+
+  // Keep real button pagination accessible, including after arrow/swipe/autoplay.
+  const updateDotState = () => {
+    const dots = paginationElement?.querySelectorAll(".hero-slider-dot") || [];
+    dots.forEach((dot, index) => {
+      if (index === swiper.realIndex) {
+        dot.setAttribute("aria-current", "true");
+      } else {
+        dot.removeAttribute("aria-current");
+      }
+    });
+  };
+  swiper.on("slideChange", updateDotState);
+  updateDotState();
 
   sliderElement.dataset.swiperReady = "true";
   sliderElement.swiperInstance = swiper;

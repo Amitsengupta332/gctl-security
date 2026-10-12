@@ -1,0 +1,28 @@
+<!-- CLS blog layout: Tailwind utilities only. No hero banner, CSS overrides or bundled photographs. -->
+<section data-blog-page class="bg-white pb-20 text-[#0c2039] sm:pb-24">
+  <div class="border-b border-[#e7ebf2]">
+    <div class="mx-auto w-full max-w-[1360px] px-4 py-4 sm:px-7 lg:px-8">
+      <nav class="flex items-center gap-3 text-[12px] font-medium" aria-label="Breadcrumb">
+        <a class="text-[#55708e] hover:text-[#0062d8]" href="/">GCTL Security</a>
+        <span class="text-[#90a5bc]" aria-hidden="true">›</span>
+        <span aria-current="page" class="font-bold text-[#102540]">Blog</span>
+      </nav>
+    </div>
+  </div>
+
+  <div class="mx-auto w-full max-w-[1360px] px-4 sm:px-7 lg:px-8">
+    <header class="pb-5 pt-7 sm:pt-8">
+      <p class="mb-2 text-[11px] font-extrabold uppercase tracking-[0.14em] text-[#0069e7]">Latest Insights</p>
+      <h1 class="text-[25px] font-extrabold leading-tight tracking-tight text-[#081b35] sm:text-[27px]">News, Guides &amp; Insights</h1>
+      <div class="mt-2 h-[3px] w-[46px] rounded-full bg-[#078afa]"></div>
+      <p class="mt-4 max-w-[730px] text-[13px] leading-[1.8] text-[#57769a] sm:text-[14px]">Discover the latest in security technology, CCTV systems, alarm solutions, and practical advice from GCTL Security experts.</p>
+    </header>
+
+    <div class="border-b border-[#dce5f1] pb-4" id="blogToolbar">
+      <div id="blogFilters" class="flex flex-wrap items-center gap-[7px]" role="group" aria-label="Blog and video categories"></div>
+    </div>
+    <div class="grid grid-cols-1 gap-5 pt-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4" id="blogGrid" aria-label="Articles and video guides"></div>
+    <div class="py-12 text-center text-[14px] text-slate-500" id="blogEmpty" hidden>No posts are available in this category.</div>
+    <div id="blogPagination" class="mt-9 flex flex-wrap items-center justify-between gap-5 border-t border-[#e8edf4] pt-6" aria-label="Blog pagination"></div>
+  </div>
+</section>

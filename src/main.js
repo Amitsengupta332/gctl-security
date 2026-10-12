@@ -1,3 +1,5 @@
+import { initBlogPage } from "./blog-page.js";
+import { initBlogDetailsPage } from "./blog-details-page.js";
 import "./style.css";
 import { initNavbar } from "./navbar.js";
 import { initReusablePages } from "./reusable-pages.js";
@@ -51,6 +53,8 @@ async function loadComponents() {
   initServiceDetailsPage();
   initIndustryDetailsPage();
   initServicesIndustriesSliders();
+  initBlogPage();
+  initBlogDetailsPage();
   initProjectsPage();
   initProjectDetailsPage();
   initHeroSlider();

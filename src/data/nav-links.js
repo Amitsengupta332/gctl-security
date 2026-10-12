@@ -90,8 +90,8 @@ export const NAV_LINKS = [
   },
 
   {
-    label: "Resources",
-    href: "/resources.html",
+    label: "Blog",
+    href: "/blog/",
   },
 
   {
